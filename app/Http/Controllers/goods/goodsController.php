@@ -3,30 +3,20 @@
 namespace App\Http\Controllers\goods;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\goods;
-// use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB;
 
 class goodsController extends Controller
 {
-
-    private $goods;
-    
-    public function __construct(goods $goods) 
-    // Laravel 의 IOC(Inversion of Control) 입니다
-    // 이렇게 모델을 가져오는 것이 추천 코드
-    {
-        $this->goods = $goods;
-    }
-
-    //인덱스라는 이름의 함수 : goods_list를 보여주는 기능
     public function index()
     {
-        //goodslist의 데이터를 최신순(idx기준)으로 페이징해서 가져오기
-        $goodslist = $this->goods->latest('idx')->paginate(10);
+        DB::beginTransaction();
 
+        $goodslist = DB::table('goods') -> orderByDesc('idx')
+                                        -> limit(10)
+                                        -> get();
+        
         //index페이지에 $goodslist를 보내주기
-        return view('goods/goods_list', compact('goodslist'));
-        // return view('goods/goods_list');
+        return view('goods/goods_list', ['goodslist' => $goodslist]);
     }
 
     //상품등록창 보기 메소드
@@ -37,37 +27,51 @@ class goodsController extends Controller
 
     public function store(Request $request)
     {
-        //Request에 대한 유효성 검사
-        //유효성에 걸린 에러는 errors에 담긴다
-        // $request = $request -> validate([
-        //     'category' => 'required',
-        //     'goods_nm' => 'required',
-        //     'color' => 'required',
-        //     'size' => 'required',
-        //     'price' => 'required'
-        // ]);
+        $category = $request->input('category');
+        $goods_nm = $request->input('goods_nm');
+        $color = $request->input('color');
+        $size = $request->input('size');
+        $price = $request->input('price');
+        
+        // dd($category);
+        // dd($goods_nm);
+        // dd($color);
+        // dd($size);
+        // dd($price);
 
-        // $this->goods->create($request);
+        try {
+            DB::beginTransaction();
 
-        // return view('goods/goods_register', ['response' => true]);
-        // return true;
-        // return view();
-        // return redirect()->route('goods.index');
+            DB::table('goods')->insert([
+                'category' => $category,
+                'goods_nm' => $goods_nm,
+                'color' => $color,
+                'size' => $size,
+                'price' => $price,
+                'rt' => now(),
+                
+            ]);
 
-        /*ajax 처리 */
-        // $sCategory = $request -> input('regstrCategory');
-        // $sGoodsNm = $request -> input('goods_nm');
-        // $sColor = $request -> input('color');
-        // $sSize = $request -> input('size');
-        // $sPrice = $request -> input('price');
+                /* 두번째 방법
+                sql문 작성해서 쿼리빌더 넣기
+                $sql = "
+                    insert into goods values();
+                ";
+                DB::select($sql);
+                */
 
-        // $result = DB::table('goods')->insert(
-        //     [ 'category' => $sCategory, 'goods_nm' => $sGoodsNm, 'color' => $sColor, 'size' => $sSize, 'price' => $sPrice]
-        // );
-        // return response() -> json(array('msg'=>$result), 200);
+            DB::commit();
+            $msg = '성공';
+            $code = 200;
+        } catch (\Throwable $th) {
+            DB::rollback();
+            $msg = '실패';
+            $code = 500;
 
-        return json_encode(array("statusCode"=>200));
+        }
+        return response() -> json([
+            'msg' => $msg,
+            'code' => $code
+        ]);
     }
-
-
 }

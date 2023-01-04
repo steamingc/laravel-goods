@@ -11,16 +11,6 @@
     <title>상품 등록</title>
 </head>
 <body onload="window.resizeTo(600,800)">
-    <!-- 유효성 검사에 걸렸을 경우 -- 추후 alert으로 수정 -->
-    <!-- @if ($errors->any())
-    <div class="alert alert-warning" role="alert">
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-    @endif -->
     <div class="">
         <div class="text-center">
             <h1>상품등록</h1>
@@ -58,8 +48,6 @@
                     <option value="mint" name="color">mint</option>
                     <option value="pink" name="color">pink</option>
                 </select>
-                <!-- <input type="radio" id="regstrColor" name="regstrColor" value="검정">검정
-                <input type="radio" id="regstrColor" name="regstrColor" value="검정">검정 -->
             </div>
             <div class="mb-3">
                 <label for="rgstrSize" class="form-label" name="size">사이즈</label>
@@ -102,16 +90,11 @@
                 alert('가격을 입력하세요');
                 return false;
             } else {
-                // $.ajaxSetup({
-                //     headers: {
-                //     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                //     }
-                // });
-                let goodsnm = $('rgstrNm').val();
-                let goodscate = $('rgstrCategory').val();
-                let goodscol = $('rgstrColor').val();
-                let goodssize = $('rgstrSize').val();
-                let goodspri = $('rgstrPrice').val();
+                let goodsnm = $('#rgstrNm').val();
+                let goodscate = $('#rgstrCategory').val();
+                let goodscol = $('#rgstrColor').val();
+                let goodssize = $('#rgstrSize').val();
+                let goodspri = $('#rgstrPrice').val();
                 
                 $.ajax({
                     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
@@ -127,18 +110,19 @@
                         price : goodspri
                     },
                     cache: false,
-                    success: function(){
-                        window.opner.location.reload();
-                        self.close();
+                    success: function(data){
+                        if (data.code == 200) {
+                            alert('상품을 등록하였습니다');
+                            window.opener.location.reload();
+                            self.close();
+                        } else if (data.code == 500) {
+                            alert('상품등록에 실패했습니다');
+                            window.opener.location.reload();
+                            self.close();
+                        }
                     }
                 });
             }
-
-            // if(result){
-            //     // window.opener.location.href="{{route('goods.index')}}";
-            //     window.opener.location.reload();
-            //     self.close();
-            // } 
         }
     </script>
 </body>

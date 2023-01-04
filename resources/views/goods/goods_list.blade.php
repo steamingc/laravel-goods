@@ -7,17 +7,11 @@
     <script src="./jquery-3.6.3.min.js"></script>
     <script src="./bootstrap-5.3.0/js/bootstrap.bundle.min.js"></script>
     <title>Goods List</title>
-    <script>
-        
-    </script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid">
             <a class="navbar-brand">상품관리 페이지</a>
-            <!-- <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-            </button> -->
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
@@ -73,11 +67,9 @@
                     </tr>
                 </thead>
                 <tbody class="table-group-divider">
-                    <!-- blade에서 반복문을 처리하는 방법
-                    goodsController에서 index에 넘긴 $goodslist(goods데이터리스트)를 출력해준다 -->
-                    @foreach ($goodslist as $key => $goods)
+                    @foreach ($goodslist as $goods)
                     <tr>
-                        <th scope="row">{{$key+1 + (($goodslist->currentPage()-1) * 10)}}</th>
+                        <th scope="row">{{$goods->idx}}</th>
                         <td>{{$goods->goods_nm}}</td>
                         <td>{{$goods->category}}</td>
                         <td>{{$goods->color}}</td>
