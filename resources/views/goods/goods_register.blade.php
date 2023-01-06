@@ -4,14 +4,16 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./bootstrap-5.3.0/css/bootstrap.min.css">
+    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <script src="./jquery-3.6.3.min.js"></script>
-    <script src="./bootstrap-5.3.0/js/bootstrap.bundle.min.js"></script>
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script> -->
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script> -->
+    <script src="{{ asset('js/app.js') }}" defer></script>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>상품 등록</title>
 </head>
 <body onload="window.resizeTo(600,800)">
-    <div class="">
+    <div class="" style="padding:20px;">
         <div class="text-center">
             <h1>상품등록</h1>
             <hr />
@@ -58,6 +60,13 @@
                 <input type="radio" id="rgstrSize" name="size" value="xl">XL
             </div>
             <div class="mb-3">
+                <label for="rgstrWeather" class="form-label" name="weatherchk">계절</label>
+                    <input class="form-check-input" type="checkbox" value="봄" id="rgstrWeather" name="weatherchk">봄
+                    <input class="form-check-input" type="checkbox" value="여름" id="rgstrWeather" name="weatherchk">여름
+                    <input class="form-check-input" type="checkbox" value="가을" id="rgstrWeather" name="weatherchk">가을
+                    <input class="form-check-input" type="checkbox" value="겨울" id="rgstrWeather" name="weatherchk">겨울
+            </div>
+            <div class="mb-3">
                 <label for="rgstrPrice" class="form-label" name="price">가격</label>
                 <input class="form-control" id="rgstrPrice" placeholder="가격" name="price">
             </div>
@@ -65,7 +74,7 @@
                 <label for="formFile" class="form-label">이미지</label>
                 <input class="form-control" type="file" id="formFile">
             </div>
-            <div>
+            <div class="">
                 <button type="button" onclick="isSubmit();">등록</button>
                 <button onclick="window.close();">취소</button>
             </div>
@@ -73,6 +82,9 @@
     </div>
     <script>
         function isSubmit() {
+            var check_num = /^[0-9]+$/;
+            let str = $('#rgstrPrice').val();
+
             /* 유효성 검사 */
             if($('#rgstrNm').val() == '') {
                 alert('상품명을 입력하세요');
@@ -86,19 +98,32 @@
             } else if($(':radio[name="size"]:checked').length < 1) {
                 alert('사이즈를 선택하세요');
                 return false;
+            } else if($('input:checkbox[name="weatherchk"]:checked').length < 1) {
+                alert('계절을 선택하세요');
+                return false;
             } else if($('#rgstrPrice').val() == '') {
                 alert('가격을 입력하세요');
                 return false;
+            } else if(!check_num.test(str)) {
+                alert('가격은 숫자만 입력가능합니다');
+                return false;
             } else {
+                //변수 선언
                 let goodsnm = $('#rgstrNm').val();
-                let goodscate = $('#rgstrCategory').val();
+                let goodscate = $(':radio[name="category"]:checked').val();
                 let goodscol = $('#rgstrColor').val();
-                let goodssize = $('#rgstrSize').val();
+                let goodssize = $(':radio[name="size"]:checked').val();
+
+                let goodsweather = '';
+                $(':checkbox[name="weatherchk"]:checked').each(function(index){
+                    let chk = $(this).val();
+                    index == 0 ? goodsweather += chk : goodsweather += (", " + chk);
+                });
+
                 let goodspri = $('#rgstrPrice').val();
                 
                 $.ajax({
                     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                    // url: "{{route('goods.store')}}",
                     url: "/store",
                     type: "POST",
                     traditional : true,
@@ -107,6 +132,7 @@
                         goods_nm : goodsnm,
                         color : goodscol,
                         size : goodssize,
+                        weather : goodsweather,
                         price : goodspri
                     },
                     cache: false,

@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="./bootstrap-5.3.0/css/bootstrap.min.css">
-    <script src="./jquery-3.6.3.min.js"></script>
+    <!-- <script src="./jquery-3.6.3.min.js"></script> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="./bootstrap-5.3.0/js/bootstrap.bundle.min.js"></script>
     <title>Goods List</title>
     <script>
@@ -22,6 +24,63 @@
             window.open(url, "gd_rg", "width=" + windowW + ", height=" + windowH + ", scrollbars=no, menubar=no, top=" + popY + ", left=" + popX);
         }
         
+        //selectAll 클릭시
+        function selectAll(selectAll){
+            const checkboxes = document.getElementsByName('deletechk');
+            checkboxes.forEach((checkbox) => {
+                checkbox.checked = selectAll.checked;
+            })
+        }
+
+        //checkbox 개별 클릭시
+        function selectchk(){
+            let total = $("input[name='deletechk']").length;
+            let checked = $("input[name='deletechk']:checked").length;
+            if(total != checked) $("#selectAll").prop("checked", false);
+            else $("#selectAll").prop("checked", true); 
+        }
+
+        //삭제 
+        function isdelete(){
+            let num = $('input:checkbox[name=deletechk]:checked').length;
+
+            //체크된 것이 있으면
+            if($('input:checkbox[name=deletechk]:checked').length > 0) {
+                let isdel = confirm(num + '개의 상품을 삭제하겠습니까?');
+                if(isdel) {
+                    let idxarr = [];
+
+                    $('input:checkbox[name=deletechk]').each(function (i) {
+                        if($(this).is(":checked")==true){
+                            idxarr.push($(this).val());
+                            console.log($(this).val());
+                            console.log(idxarr);
+                        }
+                    });
+                    //ajax를 통해 php로 데이터를 보낼 때 array는 json형태로 보내줘야함
+                    dataObject = JSON.stringify(idxarr);
+
+                    $.ajax({
+                        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+                        url: "delete",
+                        type: "post",
+                        traditional : true,
+                        data: { dataObject : dataObject },
+                        dataType: "json",
+                        success: function() {
+                            alert('글을 삭제하였습니다!');
+                            location.href='/'; 
+                            }
+                    });
+
+                } else {
+                }
+                //체크 없으면
+            } else {
+                alert('선택된 것이 없습니다');
+            }
+        }
+
         function setPriceformat(pricenum, id){
             let price = pricenum;
             price = price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -29,7 +88,7 @@
         }  
 
         //정렬 왔다갔다
-        function orderbynm(){
+        function orderbynm() {
             let link = document.location.href;
             if(link =="http://127.0.0.1:8002/goodsnm1") {
                 location.href="goodsnm2";
@@ -38,7 +97,7 @@
             }
         }
 
-        function orderbytm(){
+        function orderbytm() {
             let link = document.location.href;
             if(link =="http://127.0.0.1:8002/goodsrgt1") {
                 location.href="goodsrgt2";
@@ -46,40 +105,10 @@
                 location.href="goodsrgt1";
             } 
         }
-
-        //검색
-        function issearch(){
-            let input = $('#search').val();
-            if(!(input=="")){
-                console.log(input);
-
-                // $.ajax({
-                //     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                //     url: "search",
-                //     type: "post",
-                //     traditional : true,
-                //     data: 
-                //         { input : input },
-                //     dataType: "json",
-                //     success: function(data) {
-                //         alert("꺅! 성공!");
-                //         console.log(data.code);
-                //         location.href='/'; 
-                //     },
-                //     error: function() {
-                //         alert("검색된 제품이 없습니다");
-                //     }
-                // });
-
-                location.href=`search?name=${input}`;
-            } else {
-                alert('검색어를 입력해주세요');
-            }
-        }
     </script>
 </head>
 <body>
-    <div class="py-1 px-2">
+<div class="py-1 px-2">
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">상품관리 페이지</a>
@@ -89,7 +118,7 @@
                         <a href="javascript:" onclick="pop('register');" class="nav-link" aria-current="page">등록</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="select">삭제</a>
+                        <a class="nav-link" href="select" style="font-weight: bold;">삭제</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -126,19 +155,22 @@
                         </ul>
                     </li>
                 </ul>
-                <form class="d-flex" role="search" method="get">
-                    <input class="form-control me-2" type="search" placeholder="상품명" aria-label="Search" id="search">
-                    <!-- <button class="btn btn-sm btn-outline-success" type="submit" >검색</button> -->
-                    <button class="btn btn-sm btn-outline-success" type="button" onclick="issearch();">검색</button>
+                <form class="d-flex" role="search">
+                    <input class="form-control me-2" type="search" placeholder="상품명" aria-label="Search">
+                    <button class="btn btn-sm btn-outline-success" type="submit">검색</button>
                 </form>
             </div>
         </div>
     </nav>
     <div class="">    
         <div class="">
-            <table class="table text-center">
+            <table class="table">
                 <thead>
                     <tr>
+                        <th scope="col">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="selectAll" onclick="selectAll(this)" id="selectAll" name="deletechkAll">
+                            </div></th>
                         <th scope="col">상품번호</th>
                         <th scope="col">상품명</th>
                         <th scope="col">카테고리</th>
@@ -154,8 +186,13 @@
                 <tbody class="table-group-divider">
                     @foreach ($goodslist as $goods)
                     <tr>
-                        <th scope="row">{{$goods->idx}}</th>
-                        <td><a href="javascript:" onclick="pop('read/{{$goods->idx}}');" style="text-decoration-line: none; color: black;">{{$goods->goods_nm}}</a></td>
+                        <th scope="row">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="{{$goods->idx}}" id="deletechk" name="deletechk" onclick="selectchk()">
+                            </div>
+                        </th>
+                        <td>{{$goods->idx}}</td>
+                        <td><a href="javascript:"onclick="pop('read/{{$goods->idx}}');" style="text-decoration-line: none; color: black;">{{$goods->goods_nm}}</a></td>
                         <td>{{$goods->category}}</td>
                         <td>{{$goods->color}}</td>
                         <td>{{$goods->size}}</td>
@@ -186,9 +223,10 @@
                     </a>
                     </li>
                 </ul>
+                <button type="button" class="btn btn-sm btn-danger" onclick="isdelete();">삭제</button>
             </nav>
         </div>
     </div>
-    </div>
+</div>
 </body>
 </html>
