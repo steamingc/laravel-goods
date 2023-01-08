@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="./bootstrap-5.3.0/css/bootstrap.min.css">
     <script src="./jquery-3.6.3.min.js"></script>
     <script src="./bootstrap-5.3.0/js/bootstrap.bundle.min.js"></script>
@@ -50,28 +51,11 @@
         //검색
         function issearch(){
             let input = $('#search').val();
+            
             if(!(input=="")){
                 console.log(input);
-
-                // $.ajax({
-                //     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                //     url: "search",
-                //     type: "post",
-                //     traditional : true,
-                //     data: 
-                //         { input : input },
-                //     dataType: "json",
-                //     success: function(data) {
-                //         alert("꺅! 성공!");
-                //         console.log(data.code);
-                //         location.href='/'; 
-                //     },
-                //     error: function() {
-                //         alert("검색된 제품이 없습니다");
-                //     }
-                // });
-
-                location.href=`search?name=${input}`;
+                let word = encodeURI(input);
+                location.replace(`/${word}`);
             } else {
                 alert('검색어를 입력해주세요');
             }
@@ -126,8 +110,8 @@
                         </ul>
                     </li>
                 </ul>
-                <form class="d-flex" role="search" method="get">
-                    <input class="form-control me-2" type="search" placeholder="상품명" aria-label="Search" id="search">
+                <form class="d-flex" role="search">
+                    <input class="form-control me-2" type="text" placeholder="상품명" aria-label="Search" id="search">
                     <!-- <button class="btn btn-sm btn-outline-success" type="submit" >검색</button> -->
                     <button class="btn btn-sm btn-outline-success" type="button" onclick="issearch();">검색</button>
                 </form>
@@ -169,25 +153,35 @@
                 </tbody>
             </table>
         </div>
+
         <div class="row text-center">
             <nav aria-label="Page navigation example">
-                <ul class="pagination">
+                <ul class="pagination" style="justify-content: center;">
+                    @if ($goodslist->currentPage() > 1)
                     <li class="page-item">
-                    <a class="page-link" href="#" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
+                        <a class="page-link" href="{{ $goodslist->previousPageUrl() }}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
                     </li>
-                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    @endif
+
+                    @for($i = 1; $i <= $goodslist->lastPage(); $i++)
+                    @if ($goodslist->currentPage() == $i)
+                    <li class="page-item"><a class="page-link active" href="{{$goodslist->url($i)}}#">{{$i}}</a></li>
+                    @else
+                    <li class="page-item"><a class="page-link" href="{{$goodslist->url($i)}}#">{{$i}}</a></li>
+                    @endif
+                    @endfor
+                    <!-- <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li> -->
+
+                    @if ($goodslist->currentPage() < $goodslist->lastPage() )
                     <li class="page-item">
-                    <a class="page-link" href="#" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
+                        <a class="page-link" href="{{$goodslist->nextPageUrl()}}" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
+                    @endif
                     </li>
                 </ul>
             </nav>
         </div>
+
     </div>
     </div>
 </body>

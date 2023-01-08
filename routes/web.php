@@ -53,8 +53,7 @@ Route::get('goodsby5', 'goods\goodsController@goods_by5');
 Route::get('goodsby15', 'goods\goodsController@goods_by15');
 
 //상품 검색
-Route::get('search?name={input}','goods\goodsController@search');
-// Route::post('search','goods\goodsController@search');
+Route::get('/{input}','goods\goodsController@search');
 
 
 /* ----- db관련 ----- */

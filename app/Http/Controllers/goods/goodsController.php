@@ -13,10 +13,13 @@ class goodsController extends Controller
     {
         DB::beginTransaction();
 
-        $goodslist = DB::table('goods') -> orderByDesc('idx')
-                                        -> limit(10)
-                                        -> get();
+        // $goodslist = DB::table('goods') -> orderByDesc('idx')
+        //                                 -> limit(10)
+        //                                 -> get();
         
+        $goodslist = DB::table('goods') -> orderByDesc('idx')
+                                        -> paginate(10);
+
         //index페이지에 $goodslist를 보내주기
         return view('goods/goods_list', ['goodslist' => $goodslist]);
     }
@@ -60,8 +63,7 @@ class goodsController extends Controller
         DB::beginTransaction();
 
         $goodslist = DB::table('goods') -> orderByDesc('idx')
-                                        -> limit(10)
-                                        -> get();
+                                        -> paginate(10);
         
         return view('goods/goods_select', ['goodslist' => $goodslist]);
     }
@@ -71,9 +73,13 @@ class goodsController extends Controller
     {
         DB::beginTransaction();
         $goodslist = DB::table('goods') -> orderBy('goods_nm')
-                                        -> limit(10)
-                                        -> get();
-        return view('goods/goods_list', ['goodslist' => $goodslist]);
+                                        -> paginate(10);
+
+        // if($_SERVER['HTTP_REFERER']=="http://127.0.0.1:8002/select"){
+        //     return view('goods/goods_select', ['goodslist' => $goodslist]);
+        // } else {
+            return view('goods/goods_list', ['goodslist' => $goodslist]);
+        // }
     }
 
     //7. 정렬 - 상품명 순2
@@ -81,9 +87,13 @@ class goodsController extends Controller
     {
         DB::beginTransaction();
         $goodslist = DB::table('goods') -> orderByDesc('goods_nm')
-                                        -> limit(10)
-                                        -> get();
-        return view('goods/goods_list', ['goodslist' => $goodslist]);
+                                        -> paginate(10);
+
+        if($_SERVER['HTTP_REFERER']=="http://127.0.0.1:8002/select"){
+            return view('goods/goods_select', ['goodslist' => $goodslist]);
+        } else {
+            return view('goods/goods_list', ['goodslist' => $goodslist]);
+        }
     }
 
     //8. 정렬 - 등록일 순1
@@ -91,8 +101,7 @@ class goodsController extends Controller
     {
         DB::beginTransaction();
         $goodslist = DB::table('goods') -> orderBy('rt')
-                                        -> limit(10)
-                                        -> get();
+                                        -> paginate(10);
         return view('goods/goods_list', ['goodslist' => $goodslist]);
     }
 
@@ -101,8 +110,7 @@ class goodsController extends Controller
     {
         DB::beginTransaction();
         $goodslist = DB::table('goods') -> orderByDesc('rt')
-                                        -> limit(10)
-                                        -> get();
+                                        -> paginate(10);
         return view('goods/goods_list', ['goodslist' => $goodslist]);
     }
 
@@ -111,8 +119,7 @@ class goodsController extends Controller
     {
         DB::beginTransaction();
         $goodslist = DB::table('goods') -> orderByDesc('idx')
-                                        -> limit(5)
-                                        -> get();
+                                        -> paginate(5);
         return view('goods/goods_list', ['goodslist' => $goodslist]);
     }
 
@@ -121,48 +128,23 @@ class goodsController extends Controller
     {
         DB::beginTransaction();
         $goodslist = DB::table('goods') -> orderByDesc('idx')
-                                        -> limit(15)
-                                        -> get();
+                                        -> paginate(15);
         return view('goods/goods_list', ['goodslist' => $goodslist]);
     }
 
     //12. 상품검색(get)
-    public function search($input)  
+    public function search($input)     
     {
-
-        dd($input);
+        $word = urldecode($input);
+        // dd($input);
         DB::beginTransaction();
         $sql = "
-            select * from goods where goods_nm=$input;
+            select * from goods where goods_nm like '%$word%';
         ";
 
         $goodslist = DB::select($sql);
-        // dd($goods);
         return view('goods/goods_list', ['goodslist' => $goodslist]);
     }
-
-    //12. 상품검색(post)
-    // public function search(Request $request)  
-    // {
-    //     $input = $request->input('input');
-    //     try {
-    //         DB::beginTransaction();
-    //         // dd($input);
-    //         $sql = "
-    //             select * from goods where goods_nm='$input';
-    //         ";
-    //         $goodslist = DB::select($sql);
-    //         // dd($goods);
-    //     } catch (\Throwable $th) {
-    //         DB::rollback();
-    //         $msg = '실패';
-    //         $code = 500;
-    //     } 
-    //     return response() -> json([
-    //         'msg' => $msg,
-    //         'code' => $code
-    //     ]);
-    // }
 
     /*----- Data -----*/
     //1. 상품등록

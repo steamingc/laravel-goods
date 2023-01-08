@@ -208,22 +208,27 @@
         </div>
         <div class="row text-center">
             <nav aria-label="Page navigation example">
-                <ul class="pagination">
+                <ul class="pagination" style="justify-content: center;">
+                    @if ($goodslist->currentPage() > 1)
                     <li class="page-item">
-                    <a class="page-link" href="#" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
+                        <a class="page-link" href="{{ $goodslist->previousPageUrl() }}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
                     </li>
-                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    @endif
+
+                    @for($i = 1; $i <= $goodslist->lastPage(); $i++)
+                    @if ($goodslist->currentPage() == $i)
+                    <li class="page-item"><a class="page-link active" href="{{$goodslist->url($i)}}#">{{$i}}</a></li>
+                    @else
+                    <li class="page-item"><a class="page-link" href="{{$goodslist->url($i)}}#">{{$i}}</a></li>
+                    @endif
+                    @endfor
+
+                    @if ($goodslist->currentPage() < $goodslist->lastPage() )
                     <li class="page-item">
-                    <a class="page-link" href="#" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
+                        <a class="page-link" href="{{$goodslist->nextPageUrl()}}" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
+                    @endif
                     </li>
                 </ul>
-                <button type="button" class="btn btn-sm btn-danger" onclick="isdelete();">삭제</button>
             </nav>
         </div>
     </div>
