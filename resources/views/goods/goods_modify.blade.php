@@ -241,11 +241,8 @@
                     });
                 }
 
-
-
                 $.ajax({
                     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                    // url: "{{route('goods.store')}}",
                     url: "/modify/{{$goods->idx}}",
                     type: "POST",
                     traditional : true,

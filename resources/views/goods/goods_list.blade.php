@@ -9,11 +9,12 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="./bootstrap-5.3.0/js/bootstrap.bundle.min.js"></script>
 
+    <script src='https://unpkg.com/@ag-grid-enterprise/all-modules@22.1.2/dist/ag-grid-enterprise.min.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.noStyle.js"></script>
     <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css"/>
     <link rel="stylesheet"
-     href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css"/>
+     href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-balham.css"/>
     <title>Goods List</title>
     <script>
         //팝업창 위치 조정
@@ -37,23 +38,23 @@
         }  
 
         //정렬 왔다갔다
-        function orderbynm(){
-            let link = document.location.href;
-            if(link =="http://127.0.0.1:8002/goodsnm1") {
-                location.href="goodsnm2";
-            } else {
-                location.href="goodsnm1";
-            }
-        }
+        // function orderbynm(){
+        //     let link = document.location.href;
+        //     if(link =="http://127.0.0.1:8002/goodsnm1") {
+        //         location.href="goodsnm2";
+        //     } else {
+        //         location.href="goodsnm1";
+        //     }
+        // }
 
-        function orderbytm(){
-            let link = document.location.href;
-            if(link =="http://127.0.0.1:8002/goodsrgt1") {
-                location.href="goodsrgt2";
-            } else {
-                location.href="goodsrgt1";
-            } 
-        }
+        // function orderbytm(){
+        //     let link = document.location.href;
+        //     if(link =="http://127.0.0.1:8002/goodsrgt1") {
+        //         location.href="goodsrgt2";
+        //     } else {
+        //         location.href="goodsrgt1";
+        //     } 
+        // }
 
         //검색
         function issearch(){
@@ -92,9 +93,9 @@
                             <a href="javascript:" onclick="pop('register');" class="nav-link" aria-current="page">등록</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="select">삭제</a>
+                            <a class="nav-link" href="javascript:" onclick="isdelete()">삭제</a>
                         </li>
-                        <li class="nav-item dropdown">
+                        <!-- <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <?php 
                                     if($_SERVER["REQUEST_URI"]=='/goodsnm1') {
@@ -127,7 +128,7 @@
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="goodsby15">15개</a></li>
                             </ul>
-                        </li>
+                        </li> -->
                     </ul>
                     <!-- <form id="searchFrm" name="searchFrm"> -->
                         <div class="d-flex" role="search">
@@ -151,6 +152,7 @@
     let gx;
     const gridOptions = {
         columnDefs: [
+            {headerName: [''], headerCheckboxSelection: true, checkboxSelection: true, width: '30px'},
             {headerName: "#", field: "idx", width: 50},
             {headerName: "상품명", field: "goods_nm", width: 150,
                 //cell 클릭시
@@ -170,17 +172,17 @@
             // {headerName: "", field: "", width: 'auto'}
         ],
 
-        // onRowClicked : (RowClickedEvent) => pop('read/'+params.data.idx),
         defaultColDef: {sortable: true, filter: true},
         rowSelection: 'multiple',
         animateRows: true,
         onGridReady: function (params) {
             params.api.sizeColumnsToFit();
         },
+        isdelete : isdelete,
+
     };
    
-    
-
+    //문서 시작시 goodslist 출력
     $(document).ready(function(){
         const eGridDiv = document.getElementById("div-gd");
         gx = new agGrid.Grid(eGridDiv, gridOptions);
@@ -188,6 +190,7 @@
         Search();
     });
 
+    //검색
     function Search() {
         // let data = $('form[name="searchFrm"]').serialize();
         let data = $('#search').val();
@@ -209,6 +212,42 @@
         });
     }
 
+
+    function isdelete(){
+            let rows = gridOptions.api.getSelectedRows();
+            let rowCount = gridOptions.api.getSelectedRows().length;
+            
+            //체크된 것이 있으면
+            if(rowCount > 0) {
+                let isdel = confirm(rowCount + '개의 상품을 삭제하겠습니까?');
+                if(isdel) {
+                    let idxarr = [];
+                    rows.forEach(function (selectedRow, i) {
+                        idxarr.push(selectedRow.idx);
+                    });
+                    //ajax를 통해 php로 데이터를 보낼 때 array는 json형태로 보내줘야함
+                    dataObject = JSON.stringify(idxarr);
+
+                    $.ajax({
+                        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+                        url: "delete",
+                        type: "post",
+                        traditional : true,
+                        data: { dataObject : dataObject },
+                        dataType: "json",
+                        success: function() {
+                            alert('글을 삭제하였습니다!');
+                            location.href='/'; 
+                        }
+                    });
+
+                } else {
+                }
+                //체크 없으면
+            } else {
+                alert('선택된 것이 없습니다');
+            }
+        }
     
 </script>
 </body>

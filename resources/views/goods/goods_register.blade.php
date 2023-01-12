@@ -250,21 +250,12 @@
 
                 $.ajax({
                     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                    url: "/store",
+                    url: "store",
                     type: "POST",
                     traditional : true,
                     enctype: 'multipart/form-data',
                     processData: false,
                     contentType: false,
-                    // data: {
-                    //     category : goodscate,
-                    //     goods_nm : goodsnm,
-                    //     color : goodscol,
-                    //     size : goodssize,
-                    //     weather : goodsweather,
-                    //     price : goodspri,
-                    //     image : imageInput
-                    // },
                     data : formData,
                     cache: false,
                     success: function(data){
