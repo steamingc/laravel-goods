@@ -5,8 +5,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="./bootstrap-5.3.0/css/bootstrap.min.css">
-    <script src="./jquery-3.6.3.min.js"></script>
+    <!-- <script src="./jquery-3.6.3.min.js"></script> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="./bootstrap-5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.noStyle.js"></script>
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css"/>
+    <link rel="stylesheet"
+     href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css"/>
     <title>Goods List</title>
     <script>
         //팝업창 위치 조정
@@ -54,135 +61,155 @@
             
             if(!(input=="")){
                 console.log(input);
-                let word = encodeURI(input);
-                location.replace(`/${word}`);
+                // let word = encodeURI(input);
+                Search();
+                // location.replace(`/${word}`);
             } else {
                 alert('검색어를 입력해주세요');
             }
         }
+
+        //검색 엔터
+        $(document).ready(function(){
+            $('#search').focus();
+            $("#search").keydown(function(key){
+                if(key.keyCode == 13) {
+                    issearch();
+                }
+            })
+        })
+
     </script>
 </head>
 <body>
     <div class="py-1 px-2">
-    <nav class="navbar navbar-expand-lg bg-body-tertiary">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">상품관리 페이지</a>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a href="javascript:" onclick="pop('register');" class="nav-link" aria-current="page">등록</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="select">삭제</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <?php 
-                                if($_SERVER["REQUEST_URI"]=='/goodsnm1') {
-                                    echo "상품명(오름차순)";
-                                } else if($_SERVER["REQUEST_URI"]=='/goodsnm2') {
-                                    echo "상품명(내림차순)";
-                                } else if($_SERVER["REQUEST_URI"]=='/goodsrgt1') {
-                                    echo "등록일(오름차순)";
-                                } else if($_SERVER["REQUEST_URI"]=='/goodsrgt2') {
-                                    echo "등록일(내림차순)";
-                                } else {
-                                    echo "정렬";
-                                }
-                            ?>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a href="#" class="dropdown-item" onclick="orderbynm();">상품명 순</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a href="#" class="dropdown-item" onclick="orderbytm();">등록일 순</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            보기
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="goodsby5">5개</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/">10개</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="goodsby15">15개</a></li>
-                        </ul>
-                    </li>
-                </ul>
-                <form class="d-flex" role="search">
-                    <input class="form-control me-2" type="text" placeholder="상품명" aria-label="Search" id="search">
-                    <!-- <button class="btn btn-sm btn-outline-success" type="submit" >검색</button> -->
-                    <button class="btn btn-sm btn-outline-success" type="button" onclick="issearch();">검색</button>
-                </form>
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">상품관리 페이지</a>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a href="javascript:" onclick="pop('register');" class="nav-link" aria-current="page">등록</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="select">삭제</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <?php 
+                                    if($_SERVER["REQUEST_URI"]=='/goodsnm1') {
+                                        echo "상품명(오름차순)";
+                                    } else if($_SERVER["REQUEST_URI"]=='/goodsnm2') {
+                                        echo "상품명(내림차순)";
+                                    } else if($_SERVER["REQUEST_URI"]=='/goodsrgt1') {
+                                        echo "등록일(오름차순)";
+                                    } else if($_SERVER["REQUEST_URI"]=='/goodsrgt2') {
+                                        echo "등록일(내림차순)";
+                                    } else {
+                                        echo "정렬";
+                                    }
+                                ?>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" class="dropdown-item" onclick="orderbynm();">상품명 순</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a href="#" class="dropdown-item" onclick="orderbytm();">등록일 순</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                보기
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="goodsby5">5개</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/">10개</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="goodsby15">15개</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <!-- <form id="searchFrm" name="searchFrm"> -->
+                        <div class="d-flex" role="search">
+                                
+                            <input class="form-control me-2" type="text" placeholder="상품명" aria-label="Search" id="search">
+                            <button class="btn btn-sm btn-outline-success col-3" type="button" onclick="issearch();" id="btnSrch">검색</button>
+                        </div>
+                    <!-- </form> -->
+                </div>
+            </div>
+        </nav>
+    
+        <div>
+            <div class="table-responsive">
+                <div id="div-gd" style="height:calc(100vh - 370px); width:100%;" class="ag-theme-balham"></div>
             </div>
         </div>
-    </nav>
-    <div class="">    
-        <div class="">
-            <table class="table text-center">
-                <thead>
-                    <tr>
-                        <th scope="col">상품번호</th>
-                        <th scope="col">상품명</th>
-                        <th scope="col">카테고리</th>
-                        <th scope="col">색상</th>
-                        <th scope="col">사이즈</th>
-                        <th scope="col">가격</th>
-                        <th scope="col">계절</th>
-                        <th scope="col">이미지</th>
-                        <th scope="col">등록일자</th>
-                        <th scope="col">수정일자</th>
-                    </tr>
-                </thead>
-                <tbody class="table-group-divider">
-                    @foreach ($goodslist as $goods)
-                    <tr>
-                        <th scope="row">{{$goods->idx}}</th>
-                        <td><a href="javascript:" onclick="pop('read/{{$goods->idx}}');" style="text-decoration-line: none; color: black;">{{$goods->goods_nm}}</a></td>
-                        <td>{{$goods->category}}</td>
-                        <td>{{$goods->color}}</td>
-                        <td>{{$goods->size}}</td>
-                        <td><span id="{{$goods->idx}}"></span><script>setPriceformat({{$goods->price}}, '{{$goods->idx}}');</script></td>
-                        <td>{{$goods->weather}}</td>
-                        <td>(이미지)</td>
-                        <td>{{$goods->rt}}</td>
-                        <td>{{$goods->ut}}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-
-        <div class="row text-center">
-            <nav aria-label="Page navigation example">
-                <ul class="pagination" style="justify-content: center;">
-                    @if ($goodslist->currentPage() > 1)
-                    <li class="page-item">
-                        <a class="page-link" href="{{ $goodslist->previousPageUrl() }}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
-                    </li>
-                    @endif
-
-                    @for($i = 1; $i <= $goodslist->lastPage(); $i++)
-                    @if ($goodslist->currentPage() == $i)
-                    <li class="page-item"><a class="page-link active" href="{{$goodslist->url($i)}}#">{{$i}}</a></li>
-                    @else
-                    <li class="page-item"><a class="page-link" href="{{$goodslist->url($i)}}#">{{$i}}</a></li>
-                    @endif
-                    @endfor
-                    <!-- <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li> -->
-
-                    @if ($goodslist->currentPage() < $goodslist->lastPage() )
-                    <li class="page-item">
-                        <a class="page-link" href="{{$goodslist->nextPageUrl()}}" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
-                    @endif
-                    </li>
-                </ul>
-            </nav>
-        </div>
-
     </div>
-    </div>
+
+<script>
+    let gx;
+    const gridOptions = {
+        columnDefs: [
+            {headerName: "#", field: "idx", width: 50},
+            {headerName: "상품명", field: "goods_nm", width: 150,
+                //cell 클릭시
+                cellRenderer: function(params) {
+                    let index = params.data.idx;
+                    return '<a href="javascript:" onclick="pop(`read/'+index+'`);" style="text-decoration-line: none; color: black;">'+params.value+'</a>'
+            }
+        },
+            {headerName: "카테고리", field: "category",  width: 80},
+            {headerName: "색상", field: "color",  width: 80},
+            {headerName: "사이즈", field: "size", width: 80},
+            {headerName: "가격", field: "price", width: 100},
+            {headerName: "계절", field: "weather", width: 80},
+            {headerName: "등록일시", field: "rt", width: 120},
+            {headerName: "수정일시", field: "ut", width: 120},
+            // {headerName: "수정", field: "", width: 50},
+            // {headerName: "", field: "", width: 'auto'}
+        ],
+
+        // onRowClicked : (RowClickedEvent) => pop('read/'+params.data.idx),
+        defaultColDef: {sortable: true, filter: true},
+        rowSelection: 'multiple',
+        animateRows: true,
+        onGridReady: function (params) {
+            params.api.sizeColumnsToFit();
+        },
+    };
+   
+    
+
+    $(document).ready(function(){
+        const eGridDiv = document.getElementById("div-gd");
+        gx = new agGrid.Grid(eGridDiv, gridOptions);
+        
+        Search();
+    });
+
+    function Search() {
+        // let data = $('form[name="searchFrm"]').serialize();
+        let data = $('#search').val();
+  
+        $.ajax({
+            url: 'search',
+            type: "GET",
+            data : 
+                { data : data },
+            dataType: "json",
+            success: function(data){
+                gx.gridOptions.api.setRowData(data.result);
+                // console.log("hey");
+                if(data.result==null){
+                    console.log(data.result);
+                    alert('검색된 데이터가 없습니다.');
+                }
+            }
+        });
+    }
+
+    
+</script>
 </body>
 </html>

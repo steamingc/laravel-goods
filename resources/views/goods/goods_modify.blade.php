@@ -24,21 +24,14 @@
                 <label for="rgstrNm" class="form-label" name="goods_nm">상품명</label>
                 <input class="form-control" id="rgstrNm" name="goods_nm" placeholder="{{$goods->goods_nm}}" >
             </div>
-            
             <div class="mb-3">
                 <label for="rgstrCategory" class="form-label" name="category">카테고리</label>
-
                 <input type="radio" id="rgstrCategory" name="category" value="상의" 
                 {{ ($goods ->category==='상의')? "checked" : "" }}>상의
-
                 <input type="radio" id="rgstrCategory" name="category" value="하의" {{ ($goods ->category==='하의')? "checked" : "" }}>하의
-
                 <input type="radio" id="rgstrCategory" name="category" value="신발" {{ ($goods ->category==='신발')? "checked" : "" }}>신발
-
                 <input type="radio" id="rgstrCategory" name="category" value="모자" {{ ($goods ->category==='모자')? "checked" : "" }}>모자
-               
-                <input type="radio" id="rgstrCategory" name="category" value="가방"{{ ($goods ->category==='가방')? "checked" : "" }}>가방
-                
+                <input type="radio" id="rgstrCategory" name="category" value="가방"{{ ($goods ->category==='가방')? "checked" : "" }}>가방  
             </div>
             <div class="mb-3">
                 <label for="rgstrColor" class="form-label" name="color">색상</label>
@@ -76,21 +69,125 @@
                 <label for="rgstrPrice" class="form-label" name="price">가격</label>
                 <input class="form-control" id="rgstrPrice" name="price" placeholder="{{$goods->price}}">
             </div>
+            <div>
             <div class="mb-3">
                 <label for="formFile" class="form-label">이미지</label>
-                <input class="form-control" type="file" id="formFile" disabled>
-            </div>
-            <div>
-                <button onclick="self.close();">닫기</button>
-                <button type="button" onclick="isSubmit();">수정</button>
+                <input class="form-control" type="file" id="formFile" name="formimage" onchange="readMultipleImage(this);" multiple>
+                <!-- <label id="beforeimg">{{$goods->img}}</label> -->
+                <div>
+                    <?php
+                    if (str_contains( $goods->img, ',' )) {
+                        $imgs = explode(",", $goods->img);
+                        $imgps = explode(",", $goods->img_path);
+                        $num = count($imgs);
+                        for($i=0; $i<$num; $i++) {
+                            echo '<img src="/storage/images/'.$imgs[$i].'" alt="제품사진" style="width:100%;" class="beforeimg">
+                            </div><label class="beforeimg>"'.$imgps[$i].'</label>';
+                        }
+                    } else echo '<img src="/storage/images/'.$goods->img.'" alt="제품사진" style="width:100%;" class="beforeimg">
+                    </div><label class="beforeimg">'.$goods->img_path.'</label>';
+                    ?>
+                </div>
+                <div id="multiple-container" style="display: grid; grid-template-columns: 1fr 1fr 1fr; height:100%">
+                </div>
             </div>
             @endforeach
+            <div class="row" style="padding:10px; position: relative">
+                <div class="col-6 text-start">
+                    <button class="btn btn-sm btn-dark" onclick="self.close();">닫기</button>
+                </div>
+                <div class="col-6 text-end">
+                    <button class="btn btn-sm btn-primary" type="button" onclick="isSubmit();">수정</button>
+                </div>
+            </div>
         </form>
     </div>
     <script>
+        //placeholder 가격 천 단위 콤마
+        $(function(){
+            let price = document.querySelector('#rgstrPrice');
+            price = price.placeholder;
+            price = price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            $('#rgstrPrice').attr("placeholder", price);
+        });
+
+        //가격 입력 시 콤마 찍기
+        const input = document.querySelector('#rgstrPrice');
+        input.addEventListener('keyup', function(e) {   //키입력이 있을 때마다 포매팅하므로 keyup이벤트 사용
+        let value = e.target.value;         //e.target.value를 이용해 input에 입력된 값 가져옴
+        value = Number(value.replaceAll(',', ''));  //,값을 받으면 무조건 콤마없는 숫자로 반환
+        if(isNaN(value)) {      //NaN인지 판별
+            input.value = 0;
+        }else {
+            const formatValue = value.toLocaleString('ko-KR');
+            input.value = formatValue;
+        }
+        })
+
+        //썸네일
+        function readMultipleImage(input) {
+            $(".beforeimg").remove();
+            const multipleContainer = document.getElementById("multiple-container")
+            
+            // 인풋 태그에 파일들이 있는 경우
+            if(input.files) {
+                // 이미지 파일 검사 (생략)
+                console.log(input.files)
+                // 유사배열을 배열로 변환 (forEach문으로 처리하기 위해)
+                const fileArr = Array.from(input.files)
+                const $colDiv1 = document.createElement("div")
+                const $colDiv2 = document.createElement("div")
+                $colDiv1.classList.add("column")
+                $colDiv2.classList.add("colunm")
+                $colDiv1.style.height = "100%";
+                $colDiv2.style.height = "100%";
+                fileArr.forEach((file, index) => {
+                    const reader = new FileReader()
+                    const $imgDiv = document.createElement("div")   
+                    const $img = document.createElement("img")
+                    // $img.classList.add("image")
+                    $img.style.display = "block"
+                    $img.style.width = "100%"
+                    const $label = document.createElement("label")
+                    // $label.classList.add("image-label")
+                    $label.textContent = file.name
+                    $imgDiv.appendChild($img)
+                    $imgDiv.appendChild($label)
+                    reader.onload = e => {
+                        $img.src = e.target.result
+                        
+                        $imgDiv.style.width = ($img.width) * 0.5 + "px"
+                        $imgDiv.style.height = ($img.height) * 0.5 + "px"
+                        // $imgDiv.style.width = ($img.naturalWidth) * 0.2 + "px"
+                        // $imgDiv.style.height = ($img.naturalHeight) * 0.2 + "px"
+                    }
+                    
+                    // console.log(file.name)
+                    
+                    if(index % 2 == 0) {
+                        $colDiv1.appendChild($imgDiv)
+                    } else {
+                        $colDiv2.appendChild($imgDiv)
+                    }
+                    
+                    reader.readAsDataURL(file)
+                })
+                multipleContainer.appendChild($colDiv1)
+                multipleContainer.appendChild($colDiv2)
+
+                // const inputMultipleImage = document.getElementById("formFile")
+                // inputMultipleImage.addEventListener("change", e => {
+                //     readMultipleImage(e.target)
+                // })
+                // $("#beforeimg").empty();
+                
+            }
+        }
+
         function isSubmit() {
             var check_num = /^[0-9]+$/;
             let str = $('#rgstrPrice').val();
+            str = str.replace(/,/g, "");
 
             /* 유효성 검사 */
             if($('#rgstrNm').val() == '') {
@@ -116,40 +213,57 @@
                 return false;
             } else {
                 let goodsnm = $('#rgstrNm').val();
-                let goodscate = $('#rgstrCategory').val();
+                let goodscate = $(':radio[name="category"]:checked').val();
                 let goodscol = $('#rgstrColor').val();
-                let goodssize = $('#rgstrSize').val();
+                let goodssize = $(':radio[name="size"]:checked').val();
                 let goodsweather = '';
                 $(':checkbox[name="weatherchk"]:checked').each(function(index){
                     let chk = $(this).val();
                     index == 0 ? goodsweather += chk : goodsweather += (", " + chk);
                 });
-                let goodspri = $('#rgstrPrice').val();
+                let goodspri = $('#rgstrPrice').val().replace(/,/g, "");
                 
+
+                let formData = new FormData();
+
+                formData.append("category", goodscate);
+                formData.append("goods_nm", goodsnm);
+                formData.append("color", goodscol);
+                formData.append("size", goodssize,);
+                formData.append("weather", goodsweather);
+                formData.append("price", goodspri);
+
+                //이미지 첨부했을 경우에만
+                if($('input[name="formimage"]')[0].files.length > 0) {
+                    let imgarr = [];
+                    $($('input[name="formimage"]')[0].files).each(function(index, file){
+                        formData.append("image[]", file);
+                    });
+                }
+
+
+
                 $.ajax({
                     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
                     // url: "{{route('goods.store')}}",
                     url: "/modify/{{$goods->idx}}",
                     type: "POST",
                     traditional : true,
-                    data: {
-                        category : goodscate,
-                        goods_nm : goodsnm,
-                        color : goodscol,
-                        size : goodssize,
-                        weather : goodsweather,
-                        price : goodspri
-                    },
+                    enctype: 'multipart/form-data',
+                    processData: false,
+                    contentType: false,
+                    data : formData,
                     cache: false,
                     success: function(data){
                         if (data.code == 200) {
                             alert('상품을 수정하였습니다');
                             window.opener.location.reload();
-                            self.close();
+                            location.replace(`/read/`+data.idx);
+                            // self.close();
                         } else if (data.code == 500) {
                             alert('상품 수정에 실패했습니다');
-                            window.opener.location.reload();
-                            self.close();
+                            // window.opener.location.reload();
+                            // self.close();
                         }
                     }
                 });

@@ -5,21 +5,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <!-- <link rel="stylesheet" href="./bootstrap-5.3.0/css/bootstrap.min.css"> -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-    <!-- <script src="./jquery-3.6.3.min.js"></script> -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="{{ asset('js/app.js') }}" defer></script>
-    <!-- <script src="./bootstrap-5.3.0/js/bootstrap.bundle.min.js"></script> -->
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <title>상품 상세</title>
-    <script>
-        //가격 천 단위 콤마
-        $(function(){
-            let price = $('#rgstrPrice').val()
-            price = price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-            $('#rgstrPrice').attr("value", price);
-        });
-    </script>
+    
 </head>
 <body onload="window.resizeTo(600,800)">
     <div class="container-fluid" style="padding:20px;">
@@ -88,18 +81,72 @@
             </div>
             <div class="mb-3">
                 <label for="formFile" class="form-label">이미지</label>
-                <input class="form-control" type="file" id="formFile" disabled>
+                <!-- <input class="form-control" type="file" id="formFile" disabled> -->
+                <div>
+                    
+                    <?php
+
+                    if (str_contains( $goods->img, ',' )) {
+                        $imgs = explode(",", $goods->img);
+                        $imgps = explode(",", $goods->img_path);
+                        $num = count($imgs);
+                        for($i=0; $i<$num; $i++) {
+                            echo '<img src="/storage/images/'.$imgs[$i].'" alt="제품사진" style="width:100%;">
+                            </div>'.$imgps[$i];
+                        }
+                        // foreach($imgs as $img) {
+                        //     echo '<img src="/storage/images/'.$img.'" alt="제품사진" style="width:100%;">
+                        //     </div>
+                        //     {{$goods->img_path}}';
+                        // }
+                        
+                    } else echo '<img src="/storage/images/'.$goods->img.'" alt="제품사진" style="width:100%;">
+                    </div>'.$goods->img_path;
+                    ?>
+
             </div>
 
-            <div class="">
-                <button onclick="location.href='modifying/{{$goods->idx}}'">수정</button>
-                <button onclick="">삭제</button>
+            <div class="row">
+                <div class="col-12 text-end">
+                    <button class="btn btn-sm btn-primary" onclick="location.href='modifying/{{$goods->idx}}'">수정</button>
+                    <button class="btn btn-sm btn-danger" onclick="isdelete();">삭제</button>
+                </div>
             </div>
             @endforeach
         <!-- </form> -->
     </div>
     <script>
-        //삭제 버튼 시 alert창 뜨고 삭제하기 ajax
+        //가격 콤마 형식으로 출력
+        $(function(){
+            let price = $('#rgstrPrice').val()
+            price = price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            $('#rgstrPrice').attr("value", price);
+        });
+
+        //삭제
+        function isdelete() {
+            if(confirm("상품을 삭제하시겠습니까?")){
+                $.ajax({
+                    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+                    url: "/deleting/{{$goods->idx}}",
+                    type: "POST",
+                    traditional : true,
+                    cache: false,
+                    success: function(data){
+                        if (data.code == 200) {
+                            alert('상품을 삭제하였습니다');
+                            window.opener.location.reload();
+                            self.close();
+                        } else if (data.code == 500) {
+                            alert('상품을 삭제하지 못했습니다');
+                            window.opener.location.reload();
+                            self.close();
+                        }
+                    }
+                });
+            } else {
+            }
+        }
     </script>
 </body>
 </html>

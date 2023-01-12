@@ -11,6 +11,21 @@
     <script src="{{ asset('js/app.js') }}" defer></script>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>상품 등록</title>
+    <script>
+        //팝업창 위치 조정
+        function pop(url) {
+            var windowW = 1500;
+            var windowH = 900;
+            var winHeight = document.body.clientHeight;
+            var winWidth = document.body.clientWidth;
+            var winX = window.screenX || window.screenLeft || 0;
+            var winY = window.screenY || window.screenTop || 0;
+            var popX = winX + (winWidth - windowW)/2;
+            var popY = winY + (winHeight - windowH)/2;
+
+            window.open(url, "gd_nm", "width=" + windowW + ", height=" + windowH + ", scrollbars=no, menubar=no, top=" + popY + ", left=" + popX);
+        }
+    </script>
 </head>
 <body onload="window.resizeTo(600,800)">
     <div class="" style="padding:20px;">
@@ -18,12 +33,15 @@
             <h1>상품등록</h1>
             <hr />
         </div>
-        <form id="rgstrFrm" name="rgstrFrm"  method="post">
+        <form id="rgstrFrm" name="rgstrFrm"  method="post" enctype="multipart/form-data">
             <!-- 라라벨은 CSRF로 부터 보호하기 위해 데이터를 등록할 때의 위조를 체크 하기 위해 아래 코드가 필수 -->
             <!-- 라라벨은 크로스-사이트 요청 위조 공격 (CSRF)으로부터 애플리케이션을 손쉽게 보호할 수 있도록 해줍니다. 사이트 간 요청 위조는 인증된 사용자를 대신해서 승인되지 않은 커맨드를 악의적으로 활용하는 것입니다. -->
             @csrf
             <div class="mb-3">
-                <label for="rgstrNm" class="form-label" name="goods_nm">상품명</label>
+                <div class="row">
+                    <div class="col-6 text-start"><label for="rgstrNm" class="form-label" name="goods_nm">상품명</label></div>
+                    <div class="col-6 text-end"><button type="button" class="btn btn-sm btn-secondary" onclick="pop('rgstr/name')">불러오기
+                </div>
                 <input class="form-control" id="rgstrNm" placeholder="상품명" name="goods_nm">
             </div>
             <div class="mb-3">
@@ -71,19 +89,100 @@
                 <input class="form-control" id="rgstrPrice" placeholder="가격" name="price">
             </div>
             <div class="mb-3">
+                <!-- <form enctype="multipart/form-data"> -->
                 <label for="formFile" class="form-label">이미지</label>
-                <input class="form-control" type="file" id="formFile">
+                <input class="form-control" type="file" id="formFile" name="formimage" onchange="readMultipleImage(this);" multiple>
+                <!-- <img id="preview"> -->
+                <!-- </form> -->
+                <div id="multiple-container" style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
+                </div>
             </div>
-            <div class="">
-                <button type="button" onclick="isSubmit();">등록</button>
-                <button onclick="window.close();">취소</button>
+            <div class="mb-3">
+                <div class="row">
+                    <div class="col-6 text-start">
+                        <button class="btn btn-sm btn-dark" onclick="window.close();">취소</button>
+                    </div>
+                    <div class="col-6 text-end">
+                        <button class="btn btn-sm btn-primary" type="button" onclick="isSubmit();">등록</button>
+                    </div>
+                </div>
             </div>
         </form>
     </div>
     <script>
+        //가격 입력 시 , 넣기
+        const input = document.querySelector('#rgstrPrice');
+        input.addEventListener('keyup', function(e) {   //키입력이 있을 때마다 포매팅하므로 keyup이벤트 사용
+        let value = e.target.value;         //e.target.value를 이용해 input에 입력된 값 가져옴
+        value = Number(value.replaceAll(',', ''));  //,값을 받으면 무조건 콤마없는 숫자로 반환
+        if(isNaN(value)) {      //NaN인지 판별
+            input.value = 0;
+        }else {
+            const formatValue = value.toLocaleString('ko-KR');
+            input.value = formatValue;
+        }
+        })
+
+        //썸네일
+        function readMultipleImage(input) {
+            const multipleContainer = document.getElementById("multiple-container")
+            
+            // 인풋 태그에 파일들이 있는 경우
+            if(input.files) {
+                // 이미지 파일 검사 (생략)
+                console.log(input.files)
+                // 유사배열을 배열로 변환 (forEach문으로 처리하기 위해)
+                const fileArr = Array.from(input.files)
+                const $colDiv1 = document.createElement("div")
+                const $colDiv2 = document.createElement("div")
+                $colDiv1.classList.add("column")
+                $colDiv2.classList.add("column")
+                fileArr.forEach((file, index) => {
+                    const reader = new FileReader()
+                    const $imgDiv = document.createElement("div")   
+                    const $img = document.createElement("img")
+                    // $img.classList.add("image")
+                    $img.style.display = "block"
+                    $img.style.width = "100%"
+                    const $label = document.createElement("label")
+                    // $label.classList.add("image-label")
+                    $label.textContent = file.name
+                    $imgDiv.appendChild($img)
+                    $imgDiv.appendChild($label)
+                    reader.onload = e => {
+                        $img.src = e.target.result
+                        
+                        $imgDiv.style.width = ($img.width) * 0.5 + "px"
+                        $imgDiv.style.height = ($img.height) * 0.5 + "px"
+                        // $imgDiv.style.width = ($img.naturalWidth) * 0.2 + "px"
+                        // $imgDiv.style.height = ($img.naturalHeight) * 0.2 + "px"
+                    }
+                    
+                    console.log(file.name)
+                    if(index % 2 == 0) {
+                        $colDiv1.appendChild($imgDiv)
+                    } else {
+                        $colDiv2.appendChild($imgDiv)
+                    }
+                    
+                    reader.readAsDataURL(file)
+                })
+                multipleContainer.appendChild($colDiv1)
+                multipleContainer.appendChild($colDiv2)
+
+                // const inputMultipleImage = document.getElementById("formFile")
+                // inputMultipleImage.addEventListener("change", e => {
+                //     readMultipleImage(e.target)
+                // })
+            }
+        }
+
+
         function isSubmit() {
             var check_num = /^[0-9]+$/;
             let str = $('#rgstrPrice').val();
+            str = str.replace(/,/g, "");
+            // value = Number(value.replaceAll(',', ''));
 
             /* 유효성 검사 */
             if($('#rgstrNm').val() == '') {
@@ -108,7 +207,7 @@
                 alert('가격은 숫자만 입력가능합니다');
                 return false;
             } else {
-                //변수 선언
+                // 변수 선언
                 let goodsnm = $('#rgstrNm').val();
                 let goodscate = $(':radio[name="category"]:checked').val();
                 let goodscol = $('#rgstrColor').val();
@@ -120,21 +219,53 @@
                     index == 0 ? goodsweather += chk : goodsweather += (", " + chk);
                 });
 
-                let goodspri = $('#rgstrPrice').val();
+                let goodspri = $('#rgstrPrice').val().replace(/,/g, "");
                 
+                
+
+                // const imageInput = $('#formFile')[0];
+                // //이미지를 여러 개 선택할 수 있으므로 files라는 객체에 담긴다
+                // console.log("imageInput : " + imageInput.files);
+                
+
+                // const form = $('#rgstrFrm');
+                // let formData = new FormData(form[0]);
+
+                let formData = new FormData();
+
+                formData.append("category", goodscate);
+                formData.append("goods_nm", goodsnm);
+                formData.append("color", goodscol);
+                formData.append("size", goodssize,);
+                formData.append("weather", goodsweather);
+                formData.append("price", goodspri);
+
+                //이미지 첨부했을 경우에만
+                if($('input[name="formimage"]')[0].files.length > 0) {
+                    let imgarr = [];
+                    $($('input[name="formimage"]')[0].files).each(function(index, file){
+                        formData.append("image[]", file);
+                    });
+                }
+
                 $.ajax({
                     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
                     url: "/store",
                     type: "POST",
                     traditional : true,
-                    data: {
-                        category : goodscate,
-                        goods_nm : goodsnm,
-                        color : goodscol,
-                        size : goodssize,
-                        weather : goodsweather,
-                        price : goodspri
-                    },
+                    enctype: 'multipart/form-data',
+                    processData: false,
+                    contentType: false,
+                    // data: {
+                    //     category : goodscate,
+                    //     goods_nm : goodsnm,
+                    //     color : goodscol,
+                    //     size : goodssize,
+                    //     weather : goodsweather,
+                    //     price : goodspri,
+                    //     image : imageInput
+                    // },
+                    data : formData,
                     cache: false,
                     success: function(data){
                         if (data.code == 200) {

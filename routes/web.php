@@ -20,6 +20,7 @@ use \App\Http\Controllers\goods\goodsController;
 //인덱스 창
 // '/'로 get 요청이 올 경우 goodsController의 index 함수를 실행함
 // name은 이름지어주기. 나중에 route('goods.index')로 쉽게 주소 출력이 가능하다
+// Route::get('/', 'goods\goodsController@index')->name('goods.index'); 
 Route::get('/', 'goods\goodsController@index')->name('goods.index'); 
 
 //등록 창
@@ -53,7 +54,23 @@ Route::get('goodsby5', 'goods\goodsController@goods_by5');
 Route::get('goodsby15', 'goods\goodsController@goods_by15');
 
 //상품 검색
-Route::get('/{input}','goods\goodsController@search');
+// Route::get('/{input}','goods\goodsController@search');
+
+//여기여기!!!!!!!!!!!!!
+Route::get('search','goods\goodsController@search');
+// Route::get('/{input}','goods\goodsController@search');
+
+//상품 검색(select)
+// Route::get('/select/{input}','goods\goodsController@sl_search');
+
+//상품명 list 출력
+Route::get('rgstr/name', 'goods\goodsController@name')->name('gdnm');
+
+//상품idx 전송
+Route::post('rgstr/call', 'goods\goodsController@rgstrcall');
+
+//상품 등록 창
+Route::get('/register/{idx}', 'goods\goodsController@goods_register_view');
 
 
 /* ----- db관련 ----- */
@@ -67,3 +84,5 @@ Route::post('/modify/{idx}', 'goods\goodsController@modify')->name('goods.modify
 //상품 삭제
 Route::post('delete','goods\goodsController@delete');
 
+//상품 삭제 (개별)
+Route::post('deleting/{idx}','goods\goodsController@deleting');

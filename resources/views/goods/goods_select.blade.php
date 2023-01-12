@@ -24,6 +24,29 @@
             window.open(url, "gd_rg", "width=" + windowW + ", height=" + windowH + ", scrollbars=no, menubar=no, top=" + popY + ", left=" + popX);
         }
         
+        //검색
+        function issearch(){
+            let input = $('#search').val();
+            
+            if(!(input=="")){
+                console.log(input);
+                let word = encodeURI(input);
+                // location.replace(`/${word}`);
+                location.replace(`/select/${word}`);
+            } else {
+                alert('검색어를 입력해주세요');
+            }
+        }
+
+        //검색 엔터
+        $(document).ready(function(){
+            $("#search").keydown(function(key){
+                if(key.keyCode == 13) {
+                    issearch();
+                }
+            })
+        })
+
         //selectAll 클릭시
         function selectAll(selectAll){
             const checkboxes = document.getElementsByName('deletechk');
@@ -53,8 +76,8 @@
                     $('input:checkbox[name=deletechk]').each(function (i) {
                         if($(this).is(":checked")==true){
                             idxarr.push($(this).val());
-                            console.log($(this).val());
-                            console.log(idxarr);
+                            // console.log($(this).val());
+                            // console.log(idxarr);
                         }
                     });
                     //ajax를 통해 php로 데이터를 보낼 때 array는 json형태로 보내줘야함
@@ -156,8 +179,23 @@
                     </li>
                 </ul>
                 <form class="d-flex" role="search">
-                    <input class="form-control me-2" type="search" placeholder="상품명" aria-label="Search">
-                    <button class="btn btn-sm btn-outline-success" type="submit">검색</button>
+                    <?php 
+                        $word = basename($_SERVER["REQUEST_URI"]);
+                        $word = urldecode($word);
+                        // echo $word;
+                        if($word==""||$word == "select"||$word == "goodsnm1"||$word == "goodsnm2"||$word == "goodsrgt1"||$word == "goodsrgt2"||$word == "goodsby5"||$word == "goodsby15"||str_contains($word, '?page=')) {
+                            echo '
+                            <input class="form-control me-2" type="text" placeholder="상품명" aria-label="Search" id="search">
+                            ';
+                        }  else {
+                            echo '
+                            <input class="form-control me-2" type="text" placeholder="'.$word.'" aria-label="Search" id="search">
+                            ';
+                            
+                        }
+                    ?>
+                    <!-- <input class="form-control me-2" type="text" placeholder="상품명" aria-label="Search" id="search"> -->
+                    <button class="btn btn-sm btn-outline-success col-3" type="button" onclick="issearch();">검색</button>
                 </form>
             </div>
         </div>
@@ -178,7 +216,7 @@
                         <th scope="col">사이즈</th>
                         <th scope="col">가격</th>
                         <th scope="col">계절</th>
-                        <th scope="col">이미지</th>
+                        <!-- <th scope="col">이미지</th> -->
                         <th scope="col">등록일자</th>
                         <th scope="col">수정일자</th>
                     </tr>
@@ -198,7 +236,7 @@
                         <td>{{$goods->size}}</td>
                         <td><span id="{{$goods->idx}}"></span><script>setPriceformat({{$goods->price}}, '{{$goods->idx}}');</script></td>
                         <td>{{$goods->weather}}</td>
-                        <td>(이미지)</td>
+                        <!-- <td>(이미지)</td> -->
                         <td>{{$goods->rt}}</td>
                         <td>{{$goods->ut}}</td>
                     </tr>
@@ -206,30 +244,35 @@
                 </tbody>
             </table>
         </div>
-        <div class="row text-center">
-            <nav aria-label="Page navigation example">
-                <ul class="pagination" style="justify-content: center;">
-                    @if ($goodslist->currentPage() > 1)
-                    <li class="page-item">
-                        <a class="page-link" href="{{ $goodslist->previousPageUrl() }}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
-                    </li>
-                    @endif
+        <div class="row">
+            <div class="col-lg-11 col-sm-12 text-lg-start text-center">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination" style="justify-content: center;">
+                        @if ($goodslist->currentPage() > 1)
+                        <li class="page-item">
+                            <a class="page-link" href="{{ $goodslist->previousPageUrl() }}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
+                        </li>
+                        @endif
 
-                    @for($i = 1; $i <= $goodslist->lastPage(); $i++)
-                    @if ($goodslist->currentPage() == $i)
-                    <li class="page-item"><a class="page-link active" href="{{$goodslist->url($i)}}#">{{$i}}</a></li>
-                    @else
-                    <li class="page-item"><a class="page-link" href="{{$goodslist->url($i)}}#">{{$i}}</a></li>
-                    @endif
-                    @endfor
+                        @for($i = 1; $i <= $goodslist->lastPage(); $i++)
+                        @if ($goodslist->currentPage() == $i)
+                        <li class="page-item"><a class="page-link active" href="{{$goodslist->url($i)}}#">{{$i}}</a></li>
+                        @else
+                        <li class="page-item"><a class="page-link" href="{{$goodslist->url($i)}}#">{{$i}}</a></li>
+                        @endif
+                        @endfor
 
-                    @if ($goodslist->currentPage() < $goodslist->lastPage() )
-                    <li class="page-item">
-                        <a class="page-link" href="{{$goodslist->nextPageUrl()}}" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
-                    @endif
-                    </li>
-                </ul>
-            </nav>
+                        @if ($goodslist->currentPage() < $goodslist->lastPage() )
+                        <li class="page-item">
+                            <a class="page-link" href="{{$goodslist->nextPageUrl()}}" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
+                        @endif
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="col-lg-1 col-sm-12 text-lg-end text-center">
+                <button type="button" class="btn btn-sm btn-danger" onclick="isdelete();">삭제</button>
+            </div>
         </div>
     </div>
 </div>
