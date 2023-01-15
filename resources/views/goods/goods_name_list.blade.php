@@ -7,6 +7,15 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="{{ asset('js/app.js') }}" defer></script>
+
+    <!-- CDN 파일 summernote css/js -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.9/summernote-bs4.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.9/summernote-bs4.js"></script>
+    <!-- CDN 한글화 -->
+    <script src=" https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.18/lang/summernote-ko-KR.min.js"></script>
+
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>상품 목록</title>
 </head>
@@ -39,8 +48,7 @@
     <script>
         function issubmit(index){
             let idx = index;
-            // console.log(idx);
-            // console.log(window.location.href);
+
             $.ajax({
                 headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
                 url: "call",
@@ -65,8 +73,25 @@
                             $('#rgstrWeather[value="'+data.weather+'"]', opener.document).prop("checked", true);
                         }
                         $('#rgstrPrice', opener.document).val(data.price);
-                        // console.log(data.img);
-                        // console.log(data.img_path);
+
+
+                        
+                        
+                        console.log(data.comment);
+
+                        // $('#summernote', opener.document).summernote('insertText', data.comment);
+
+                        $('#summernote').summernote('insertText', data.comment);
+                        
+                        // $($editable.context.ownerDocument).summernote('editor.insertText', data.comment);
+
+
+                        //그림은 나중에 comment 먼저 해결
+                        // for (let i=0; i<(data.imgArr).length(); i++) {
+                        //     $('#summernote', opener.document).summernote('editor.insertImage', `/storage/images/${data.imgArr[i]}`);
+                        // }
+
+                        
                         $('#formFile', opener.document).val(data.img);
                         // alert('상품 정보를 불러왔습니다');
                         // self.close();

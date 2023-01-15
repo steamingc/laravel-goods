@@ -80,30 +80,17 @@
                 <input class="form-control" id="rgstrPrice" name="price" value="{{$goods->price}}" disabled>
             </div>
             <div class="mb-3">
+                <label for="rgstrComment" class="form-label" name="goods_comment">상품 설명</label>
+                <textarea class="form-control" id="rgstrComment" name="goods_comment" value="{{$goods->comment}}" disabled >{{$goods->comment}}</textarea>
+            </div>
+            <div class="mb-3">
                 <label for="formFile" class="form-label">이미지</label>
                 <!-- <input class="form-control" type="file" id="formFile" disabled> -->
-                <div>
-                    
-                    <?php
-
-                    if (str_contains( $goods->img, ',' )) {
-                        $imgs = explode(",", $goods->img);
-                        $imgps = explode(",", $goods->img_path);
-                        $num = count($imgs);
-                        for($i=0; $i<$num; $i++) {
-                            echo '<img src="/storage/images/'.$imgs[$i].'" alt="제품사진" style="width:100%;">
-                            </div>'.$imgps[$i];
-                        }
-                        // foreach($imgs as $img) {
-                        //     echo '<img src="/storage/images/'.$img.'" alt="제품사진" style="width:100%;">
-                        //     </div>
-                        //     {{$goods->img_path}}';
-                        // }
-                        
-                    } else echo '<img src="/storage/images/'.$goods->img.'" alt="제품사진" style="width:100%;">
-                    </div>'.$goods->img_path;
-                    ?>
-
+                @foreach ($goodsimglist as $goodsimg)
+                <div> 
+                    <img src="/storage/images/{{$goodsimg->img}}" alt="제품사진" style="width:100%;">
+                </div>{{$goodsimg->img_path}}
+                @endforeach
             </div>
 
             <div class="row">

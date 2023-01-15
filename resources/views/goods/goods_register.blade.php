@@ -6,9 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <script src="./jquery-3.6.3.min.js"></script>
-    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script> -->
-    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script> -->
     <script src="{{ asset('js/app.js') }}" defer></script>
+
+      <!-- CDN 파일 summernote css/js -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.9/summernote-bs4.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.9/summernote-bs4.js"></script>
+    <!-- CDN 한글화 -->
+    <script src=" https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.18/lang/summernote-ko-KR.min.js"></script>
+
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>상품 등록</title>
     <script>
@@ -88,15 +95,18 @@
                 <label for="rgstrPrice" class="form-label" name="price">가격</label>
                 <input class="form-control" id="rgstrPrice" placeholder="가격" name="price">
             </div>
-            <div class="mb-3">
-                <!-- <form enctype="multipart/form-data"> -->
+            <!-- <div class="mb-3">
                 <label for="formFile" class="form-label">이미지</label>
                 <input class="form-control" type="file" id="formFile" name="formimage" onchange="readMultipleImage(this);" multiple>
-                <!-- <img id="preview"> -->
-                <!-- </form> -->
                 <div id="multiple-container" style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
                 </div>
+            </div> -->
+            <div class="mb-3">
+                <!-- <form method="post"> -->
+                    <textarea id="summernote" name="editordata"></textarea>
+                <!-- </form> -->
             </div>
+            
             <div class="mb-3">
                 <div class="row">
                     <div class="col-6 text-start">
@@ -110,6 +120,64 @@
         </form>
     </div>
     <script>
+        let imgNameArr = new Array();
+        let imgPathArr = new Array();
+
+        //썸머노트
+        $(document).ready(function() {
+            $('#summernote').summernote({
+                height: 150,                // 에디터 높이
+                // fontSize: '24',
+                minHeight: null,            // 최소 높이
+                maxHeight: null,            // 최대 높이
+                focus: true,                // 에디터 로딩후 포커스를 맞출지 여부
+                lang: "ko-KR",				// 한글 설정
+                placeholder: '최대 100자까지 쓸 수 있습니다',	//placeholder 설정        
+                toolbar: [
+                    // [groupName, [list of button]],
+                    // ['fontname', ['fontname']],
+                    // ['fontsize', ['fontsize']],
+                    // ['font', ['fontname','fontsize','fontsizeunit']],
+                    ['style', ['bold', 'italic', 'underline','strikethrough', 'clear']],
+                    // ['color', ['forecolor','color']],
+                    ['para', ['ul', 'ol']],
+                    ['insert',['picture']],
+                ],
+                fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New','맑은 고딕','궁서','굴림체','굴림','돋움체','바탕체'],
+                fontSizes: ['8','9','10','11','12','14','16','18','20','22','24','28','30','36','50','72'],
+                callbacks: {
+                    onImageUpload: function(files, editor, welEditable) {
+                        for (var i = files.length - 1; i >= 0; i--) {
+                        sendFile(files[i], this);
+                        }
+                    }
+                } 
+            });
+        });
+
+        function sendFile(file, el) {
+        var form_data = new FormData();
+        form_data.append('file', file);
+        $.ajax({
+            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+            data: form_data,
+            type: "POST",
+            url: 'imgsave',
+            cache: false,
+            contentType: false,
+            enctype: 'multipart/form-data',
+            processData: false,
+            success: function(data) {
+                $(el).summernote('insertImage', data.url);
+                imgNameArr.push(data.imgName);
+                imgPathArr.push(data.path);
+            }, 
+            error: function(e){
+                console.log(e);
+            }
+        });
+        }
+
         //가격 입력 시 , 넣기
         const input = document.querySelector('#rgstrPrice');
         input.addEventListener('keyup', function(e) {   //키입력이 있을 때마다 포매팅하므로 keyup이벤트 사용
@@ -220,16 +288,6 @@
                 });
 
                 let goodspri = $('#rgstrPrice').val().replace(/,/g, "");
-                
-                
-
-                // const imageInput = $('#formFile')[0];
-                // //이미지를 여러 개 선택할 수 있으므로 files라는 객체에 담긴다
-                // console.log("imageInput : " + imageInput.files);
-                
-
-                // const form = $('#rgstrFrm');
-                // let formData = new FormData(form[0]);
 
                 let formData = new FormData();
 
@@ -240,13 +298,27 @@
                 formData.append("weather", goodsweather);
                 formData.append("price", goodspri);
 
-                //이미지 첨부했을 경우에만
-                if($('input[name="formimage"]')[0].files.length > 0) {
-                    let imgarr = [];
-                    $($('input[name="formimage"]')[0].files).each(function(index, file){
-                        formData.append("image[]", file);
-                    });
-                }
+                //이미지 첨부했을 경우에만 (기존)
+                // if($('input[name="formimage"]')[0].files.length > 0) {
+                //     // let imgarr = [];
+                //     $($('input[name="formimage"]')[0].files).each(function(index, file){
+                //         formData.append("image[]", file);
+                //     });
+                // }
+
+                //img arr
+                imgNameArr.forEach(function(img){
+                    formData.append("image[]", img);
+                });
+                imgPathArr.forEach(function(img){
+                    formData.append("imagePath[]", img);
+                });
+
+                //plain text
+                let comment = $($('#summernote').summernote('code')).text();
+                //with tag
+                // let comment = $('#summernote').summernote('code');
+                formData.append("comment", comment);
 
                 $.ajax({
                     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
@@ -261,12 +333,13 @@
                     success: function(data){
                         if (data.code == 200) {
                             alert('상품을 등록하였습니다');
+                            // location.replace(`/read/${data.lastid}`);
                             window.opener.location.reload();
-                            self.close();
+                            // self.close();
                         } else if (data.code == 500) {
                             alert('상품등록에 실패했습니다');
-                            window.opener.location.reload();
-                            self.close();
+                            // window.opener.location.reload();
+                            // self.close();
                         }
                     }
                 });

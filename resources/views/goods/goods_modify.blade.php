@@ -9,6 +9,15 @@
     <!-- <script src="./jquery-3.6.3.min.js"></script> -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="{{ asset('js/app.js') }}" defer></script>
+
+    <!-- CDN 파일 summernote css/js -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.9/summernote-bs4.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.9/summernote-bs4.js"></script>
+    <!-- CDN 한글화 -->
+    <script src=" https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.18/lang/summernote-ko-KR.min.js"></script>
+
     <title>상품 수정</title>
 </head>
 <body onload="window.resizeTo(600,800)">
@@ -69,28 +78,25 @@
                 <label for="rgstrPrice" class="form-label" name="price">가격</label>
                 <input class="form-control" id="rgstrPrice" name="price" placeholder="{{$goods->price}}">
             </div>
-            <div>
+            
+            <script>
+                let imgArr = new Array();
+                let img = "";
+            </script>
+            @foreach ($goodsimglist as $goodsimg)
+                <script>
+                    img = "<?= $goodsimg->img ?>";
+                    imgArr.push(img);
+                </script>
+            @endforeach
+            
             <div class="mb-3">
-                <label for="formFile" class="form-label">이미지</label>
-                <input class="form-control" type="file" id="formFile" name="formimage" onchange="readMultipleImage(this);" multiple>
-                <!-- <label id="beforeimg">{{$goods->img}}</label> -->
-                <div>
-                    <?php
-                    if (str_contains( $goods->img, ',' )) {
-                        $imgs = explode(",", $goods->img);
-                        $imgps = explode(",", $goods->img_path);
-                        $num = count($imgs);
-                        for($i=0; $i<$num; $i++) {
-                            echo '<img src="/storage/images/'.$imgs[$i].'" alt="제품사진" style="width:100%;" class="beforeimg">
-                            </div><label class="beforeimg>"'.$imgps[$i].'</label>';
-                        }
-                    } else echo '<img src="/storage/images/'.$goods->img.'" alt="제품사진" style="width:100%;" class="beforeimg">
-                    </div><label class="beforeimg">'.$goods->img_path.'</label>';
-                    ?>
-                </div>
-                <div id="multiple-container" style="display: grid; grid-template-columns: 1fr 1fr 1fr; height:100%">
-                </div>
+                <script>
+                    let comment = "<?= $goods->comment ?>";
+                </script>
+                <textarea id="summernote" name="editordata"></textarea>
             </div>
+
             @endforeach
             <div class="row" style="padding:10px; position: relative">
                 <div class="col-6 text-start">
@@ -103,6 +109,62 @@
         </form>
     </div>
     <script>
+        let imgNameArr = new Array();
+        let imgPathArr = new Array();
+
+        //썸머노트
+        $(document).ready(function() {
+            $('#summernote').summernote({
+                height: 150,                // 에디터 높이
+                minHeight: null,            // 최소 높이
+                maxHeight: null,            // 최대 높이
+                focus: true,                // 에디터 로딩후 포커스를 맞출지 여부
+                lang: "ko-KR",				// 한글 설정        
+                toolbar: [
+                    ['style', ['bold', 'italic', 'underline','strikethrough', 'clear']],
+                    ['para', ['ul', 'ol']],
+                    ['insert',['picture']],
+                ],
+                callbacks: {
+                    onImageUpload: function(files, editor, welEditable) {
+                        for (var i = files.length - 1; i >= 0; i--) {
+                        sendFile(files[i], this);
+                        }
+                    }
+                } 
+            });
+
+            $('#summernote').summernote('editor.insertText', comment);
+            for (let i=0; i<imgArr.length; i++) {
+                $('#summernote').summernote('editor.insertImage', `/storage/images/${imgArr[i]}`);
+            }
+
+        });
+
+        function sendFile(file, el) {
+        var form_data = new FormData();
+        form_data.append('file', file);
+        $.ajax({
+            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+            data: form_data,
+            type: "POST",
+            url: 'imgsave',
+            cache: false,
+            contentType: false,
+            enctype: 'multipart/form-data',
+            processData: false,
+            success: function(data) {
+                $(el).summernote('insertImage', data.url);
+                imgNameArr.push(data.imgName);
+                imgPathArr.push(data.path);
+            }, 
+            error: function(e){
+                console.log(e);
+            }
+        });
+        }
+
+
         //placeholder 가격 천 단위 콤마
         $(function(){
             let price = document.querySelector('#rgstrPrice');
@@ -233,13 +295,17 @@
                 formData.append("weather", goodsweather);
                 formData.append("price", goodspri);
 
-                //이미지 첨부했을 경우에만
-                if($('input[name="formimage"]')[0].files.length > 0) {
-                    let imgarr = [];
-                    $($('input[name="formimage"]')[0].files).each(function(index, file){
-                        formData.append("image[]", file);
-                    });
-                }
+                //img arr
+                imgNameArr.forEach(function(img){
+                    formData.append("image[]", img);
+                });
+                imgPathArr.forEach(function(img){
+                    formData.append("imagePath[]", img);
+                });
+
+                //plain text
+                let comment = $($('#summernote').summernote('code')).text();
+                formData.append("comment", comment);
 
                 $.ajax({
                     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
@@ -255,8 +321,8 @@
                         if (data.code == 200) {
                             alert('상품을 수정하였습니다');
                             window.opener.location.reload();
-                            location.replace(`/read/`+data.idx);
-                            // self.close();
+                            // location.replace(`/read/`+data.idx);
+                            self.close();
                         } else if (data.code == 500) {
                             alert('상품 수정에 실패했습니다');
                             // window.opener.location.reload();

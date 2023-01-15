@@ -143,7 +143,7 @@
     
         <div>
             <div class="table-responsive">
-                <div id="div-gd" style="height:calc(100vh - 370px); width:100%;" class="ag-theme-balham"></div>
+                <div id="div-gd" style="height: calc(100vh - 100px); width:100%;" class="ag-theme-balham"></div>
             </div>
         </div>
     </div>
@@ -175,6 +175,11 @@
         defaultColDef: {sortable: true, filter: true},
         rowSelection: 'multiple',
         animateRows: true,
+        // pagination: true,
+        paginationPageSize: 20,
+        // paginationNumberFormatter: function(params) {
+        //     return '[' + params.value.toLocaleString() + ']';
+        // },
         onGridReady: function (params) {
             params.api.sizeColumnsToFit();
         },
@@ -202,6 +207,7 @@
                 { data : data },
             dataType: "json",
             success: function(data){
+                gx.gridOptions.rowModelType = 'infinite';
                 gx.gridOptions.api.setRowData(data.result);
                 // console.log("hey");
                 if(data.result==null){
