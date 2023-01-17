@@ -48,7 +48,7 @@ Route::get('register', 'goods\goodsController@goods_register');
 Route::post('store', 'goods\goodsController@store');
 
 //상품 수정 창
-Route::get('read/modifying/{idx}', 'goods\goodsController@goods_modify');
+Route::get('modifying/{idx}', 'goods\goodsController@goods_modify');
 
 //상품 수정 기능
 Route::post('/modify/{idx}', 'goods\goodsController@modify');
@@ -56,6 +56,9 @@ Route::post('/modify/{idx}', 'goods\goodsController@modify');
 //사진 저장
 Route::post('imgsave', 'goods\goodsController@imgsave');
 Route::post('read/modifying/imgsave', 'goods\goodsController@imgsave');
+
+//개별 사진 삭제
+Route::get('modifying/photodelete/{idx}', 'goods\goodsController@photodelete');
 
 
 

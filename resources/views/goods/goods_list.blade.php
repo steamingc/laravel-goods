@@ -158,7 +158,7 @@
                 //cell 클릭시
                 cellRenderer: function(params) {
                     let index = params.data.idx;
-                    return '<a href="javascript:" onclick="pop(`read/'+index+'`);" style="text-decoration-line: none; color: black;">'+params.value+'</a>'
+                    return '<a href="javascript:" onclick="pop(`modifying/'+index+'`);" style="text-decoration-line: none; color: black;">'+params.value+'</a>'
             }
         },
             {headerName: "카테고리", field: "category",  width: 80},
@@ -180,6 +180,24 @@
         // paginationNumberFormatter: function(params) {
         //     return '[' + params.value.toLocaleString() + ']';
         // },
+
+        // how big each page in our page cache will be, default is 100
+        cacheBlockSize: 100,
+        // how many extra blank rows to display to the user at the end of the dataset,
+        // which sets the vertical scroll and then allows the grid to request viewing more rows of data.
+        // default is 1, ie show 1 row.
+        cacheOverflowSize: 2,
+        // how many server side requests to send at a time. if user is scrolling lots, then the requests
+        // are throttled down
+        maxConcurrentDatasourceRequests: 1,
+        // how many rows to initially show in the grid. having 1 shows a blank row, so it looks like
+        // the grid is loading from the users perspective (as we have a spinner in the first col)
+        infiniteInitialRowCount: 1000,
+        // how many pages to store in cache. default is undefined, which allows an infinite sized cache,
+        // pages are never purged. this should be set for large data to stop your browser from getting
+        // full of data
+        maxBlocksInCache: 10,
+
         onGridReady: function (params) {
             params.api.sizeColumnsToFit();
         },
@@ -199,7 +217,7 @@
     function Search() {
         // let data = $('form[name="searchFrm"]').serialize();
         let data = $('#search').val();
-  
+
         $.ajax({
             url: 'search',
             type: "GET",
@@ -209,7 +227,6 @@
             success: function(data){
                 gx.gridOptions.rowModelType = 'infinite';
                 gx.gridOptions.api.setRowData(data.result);
-                // console.log("hey");
                 if(data.result==null){
                     console.log(data.result);
                     alert('검색된 데이터가 없습니다.');
@@ -241,9 +258,10 @@
                         traditional : true,
                         data: { dataObject : dataObject },
                         dataType: "json",
-                        success: function() {
+                        success: function(data) {
                             alert('글을 삭제하였습니다!');
-                            location.href='/'; 
+                            // location.href='/'; 
+                            gx.gridOptions.api.setRowData(data.result);
                         }
                     });
 

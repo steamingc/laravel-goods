@@ -8,6 +8,14 @@
     <script src="./jquery-3.6.3.min.js"></script>
     <script src="{{ asset('js/app.js') }}" defer></script>
 
+    <!-- ag grid -->
+    <script src='https://unpkg.com/@ag-grid-enterprise/all-modules@22.1.2/dist/ag-grid-enterprise.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.noStyle.js"></script>
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css"/>
+    <link rel="stylesheet"
+     href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-balham.css"/>
+
       <!-- CDN 파일 summernote css/js -->
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote.min.js"></script>
@@ -95,15 +103,20 @@
                 <label for="rgstrPrice" class="form-label" name="price">가격</label>
                 <input class="form-control" id="rgstrPrice" placeholder="가격" name="price">
             </div>
-            <!-- <div class="mb-3">
+            <div class="mb-3">
                 <label for="formFile" class="form-label">이미지</label>
                 <input class="form-control" type="file" id="formFile" name="formimage" onchange="readMultipleImage(this);" multiple>
-                <div id="multiple-container" style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
-                </div>
-            </div> -->
+                <!-- <div id="multiple-container" style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
+                </div> -->
+            </div>
+            <div class="mb-3" id="multiple-container" style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
+            </div>
             <div class="mb-3">
                 <!-- <form method="post"> -->
-                    <textarea id="summernote" name="editordata"></textarea>
+                    <label for="summernote-editor" class="summernote-editor py-2">상품상세</label>
+                    <div>
+                        <textarea id="summernote" name="editordata"></textarea>
+                    </div>
                 <!-- </form> -->
             </div>
             
@@ -120,8 +133,8 @@
         </form>
     </div>
     <script>
-        let imgNameArr = new Array();
-        let imgPathArr = new Array();
+        // let imgNameArr = new Array();
+        // let imgPathArr = new Array();
 
         //썸머노트
         $(document).ready(function() {
@@ -169,8 +182,8 @@
             processData: false,
             success: function(data) {
                 $(el).summernote('insertImage', data.url);
-                imgNameArr.push(data.imgName);
-                imgPathArr.push(data.path);
+                // imgNameArr.push(data.imgName);
+                // imgPathArr.push(data.path);
             }, 
             error: function(e){
                 console.log(e);
@@ -193,25 +206,45 @@
 
         //썸네일
         function readMultipleImage(input) {
+            //여기 수정 중
+            $(".column").remove();
+            $(".beforeimg").remove();
             const multipleContainer = document.getElementById("multiple-container")
             
             // 인풋 태그에 파일들이 있는 경우
             if(input.files) {
                 // 이미지 파일 검사 (생략)
-                console.log(input.files)
+                // console.log(input.files)
+
+                let fileArr = new Array();
                 // 유사배열을 배열로 변환 (forEach문으로 처리하기 위해)
-                const fileArr = Array.from(input.files)
+                if(!Array.isArray(input)) {
+                    fileArr = Array.from(input.files);
+                    console.log(fileArr);
+                } else {
+                    fileArr = input;
+                    console.log(fileArr);
+                }
+                
+                // 유사배열을 배열로 변환 (forEach문으로 처리하기 위해)
+                // const fileArr = Array.from(input.files)
+
                 const $colDiv1 = document.createElement("div")
                 const $colDiv2 = document.createElement("div")
                 $colDiv1.classList.add("column")
                 $colDiv2.classList.add("column")
+                $colDiv1.style.height = "100%"
+                $colDiv2.style.height = "100%"
                 fileArr.forEach((file, index) => {
                     const reader = new FileReader()
-                    const $imgDiv = document.createElement("div")   
+                    const $imgDiv = document.createElement("div")
+                    $imgDiv.style.height = "150px"
+                    $imgDiv.style.padding = "10px"  
                     const $img = document.createElement("img")
                     // $img.classList.add("image")
                     $img.style.display = "block"
                     $img.style.width = "100%"
+                    $img.style.height = "100%"
                     const $label = document.createElement("label")
                     // $label.classList.add("image-label")
                     $label.textContent = file.name
@@ -299,25 +332,25 @@
                 formData.append("price", goodspri);
 
                 //이미지 첨부했을 경우에만 (기존)
-                // if($('input[name="formimage"]')[0].files.length > 0) {
-                //     // let imgarr = [];
-                //     $($('input[name="formimage"]')[0].files).each(function(index, file){
-                //         formData.append("image[]", file);
-                //     });
-                // }
+                if($('input[name="formimage"]')[0].files.length > 0) {
+                    // let imgarr = [];
+                    $($('input[name="formimage"]')[0].files).each(function(index, file){
+                        formData.append("image[]", file);
+                    });
+                }
 
-                //img arr
-                imgNameArr.forEach(function(img){
-                    formData.append("image[]", img);
-                });
-                imgPathArr.forEach(function(img){
-                    formData.append("imagePath[]", img);
-                });
+                // //img arr
+                // imgNameArr.forEach(function(img){
+                //     formData.append("image[]", img);
+                // });
+                // imgPathArr.forEach(function(img){
+                //     formData.append("imagePath[]", img);
+                // });
 
-                //plain text
-                let comment = $($('#summernote').summernote('code')).text();
-                //with tag
-                // let comment = $('#summernote').summernote('code');
+                // //plain text
+                // let comment = $($('#summernote').summernote('code')).text();
+                // //with tag
+                let comment = $('#summernote').summernote('code');
                 formData.append("comment", comment);
 
                 $.ajax({
@@ -333,8 +366,8 @@
                     success: function(data){
                         if (data.code == 200) {
                             alert('상품을 등록하였습니다');
-                            // location.replace(`/read/${data.lastid}`);
-                            window.opener.location.reload();
+                            window.opener.Search();
+
                             // self.close();
                         } else if (data.code == 500) {
                             alert('상품등록에 실패했습니다');

@@ -31,6 +31,7 @@ class goodsController extends Controller
         return response()->json(['result' => $result]);
     }
 
+
     //상품 삭제 기능
     public function delete(Request $request)
     {
@@ -83,6 +84,8 @@ class goodsController extends Controller
 
                DB::commit();
            }
+           $sql = "select * from goods order by idx desc";
+           $result = DB::select($sql);
 
            $msg = '성공';
            $code = 200;
@@ -95,7 +98,8 @@ class goodsController extends Controller
         }
         return response() -> json([
             'msg' => $msg,
-            'code' => $code
+            'code' => $code,
+            'result' => $result
         ]);
     }
 
@@ -168,13 +172,6 @@ class goodsController extends Controller
     {
         try {
             $idx = $request -> input('idx');
-            
-            // DB::beginTransaction();
-            // $sql = "
-            //     select * from goods where idx=$idx;
-            // ";
-            // $goodslist = DB::select($sql);
-
 
             $goodslist = DB::table('goods')
                         -> where('idx', $idx)
@@ -190,17 +187,9 @@ class goodsController extends Controller
                 $weather = $goods->weather;
             }
 
-
-            // $category = DB::table('goods') -> where('idx', $idx) -> value('category');
-            // $goods_nm = DB::table('goods') -> where('idx', $idx) -> value('goods_nm');
-            // $color = DB::table('goods') -> where('idx', $idx) -> value('color');
-            // $size = DB::table('goods') -> where('idx', $idx) -> value('size');
-            // $price = DB::table('goods') -> where('idx', $idx) -> value('price');
-            // $weather = DB::table('goods') -> where('idx', $idx) -> value('weather');
-
             $goodsimglist = DB::table('goods_img')
-                        -> where('idx', $idx)
-                        -> get();
+                            -> where('goods_idx', $idx)
+                            -> get();
 
             $imgArr = array();
             $imgPathArr = array();
@@ -232,7 +221,6 @@ class goodsController extends Controller
             'comment' => $comment,
             'imgArr' => $imgArr,
             'imgPathArr' => $imgPathArr
-
         ]);
     }
 
@@ -253,8 +241,8 @@ class goodsController extends Controller
         $price = $request->input('price');
         $comment = $request->input('comment');
 
-        $files = $request->input('image');
-        $filesPath = $request->input('imagePath');
+        $files = $request->file('image');
+        // $filesPath = $request->input('imagePath');
         
         try {
             DB::beginTransaction();
@@ -273,15 +261,18 @@ class goodsController extends Controller
                 $lastid = DB::getPdo() -> lastInsertId();
             
                 if(!empty($files)) {
-                    for($i=0; $i<count($files); $i++){
-                        $imageName = $files[$i];
-                        $path = $filesPath[$i];
+                    foreach($files as $file) {
+                        $imageName = date("YmdHis").'_'.$file->getClientOriginalName();
+                        $path = $file -> storeAs('public/images', $imageName);
+                        //summernote용 이미지 처리
+                        // $imageName = $files[$i];
+                        // $path = $filesPath[$i];
                         DB::table('goods_img')->insert([
-                                    'idx' => $lastid,
+                                    'goods_idx' => $lastid,
                                     'img' => $imageName,
                                     'img_path' => $path,
                                     'rt' => now()
-                                ]);
+                        ]);
                     }
                 }
 
@@ -315,11 +306,9 @@ class goodsController extends Controller
                 $url = '/storage/images/'.$imageName;
             }
 
-            DB::commit();
             $msg = '성공';
             $code = 200;
         } catch (Exception $e) {
-            DB::rollback();
             $msg = $e->getMessage();
             $code = 500;
         }
@@ -332,84 +321,6 @@ class goodsController extends Controller
         ]);
     }
 
-
-
-    // //상품 등록 기능 (기존)
-    // public function store(Request $request)
-    // {
-    //     // dd($request->all());
-    //     $category = $request->input('category');
-    //     $goods_nm = $request->input('goods_nm');
-    //     $color = $request->input('color');
-    //     $size = $request->input('size');
-    //     $weather = $request->input('weather');
-    //     $price = $request->input('price');
-
-    //     $files = $request->file('image');
-    //     $image_arr = array();
-    //     $path_arr = array();
-
-    //     if(!empty($files)) {
-    //         foreach($files as $file) {
-    //             $imageName = date("YmdHis").'_'.$file->getClientOriginalName();
-    //             $path = $file -> storeAs('public/images', $imageName);
-    //             array_push($image_arr, $imageName);
-    //             array_push($path_arr, $path);
-    //         }
-    //     }
-    //     $image_arr = implode(",", $image_arr);
-    //     $path_arr = implode(",", $path_arr);
-
-    //     try {
-    //         DB::beginTransaction();
-
-    //         if(isset($path_arr)) {
-    //             DB::table('goods')->insert([
-    //                 'category' => $category,
-    //                 'goods_nm' => $goods_nm,
-    //                 'color' => $color,
-    //                 'size' => $size,
-    //                 'weather' => $weather,
-    //                 'price' => $price,
-    //                 'img' => $image_arr,
-    //                 'img_path' => $path_arr,
-    //                 'rt' => now()
-    //             ]);
-    //         } else {
-    //             DB::table('goods')->insert([
-    //                 'category' => $category,
-    //                 'goods_nm' => $goods_nm,
-    //                 'color' => $color,
-    //                 'size' => $size,
-    //                 'weather' => $weather,
-    //                 'price' => $price,
-    //                 'rt' => now()
-    //             ]);
-    //         }
-
-    //             /* 다른 방법
-    //             sql문 작성해서 쿼리빌더 넣기
-    //             $sql = "
-    //                 insert into goods values();
-    //             ";
-    //             DB::select($sql);
-    //             */
-
-    //         DB::commit();
-    //         $msg = '성공';
-    //         $code = 200;
-    //     } catch (\Throwable $th) {
-    //         DB::rollback();
-    //         $msg = '실패';
-    //         $code = 500;
-
-    //     }
-    //     return response() -> json([
-    //         'msg' => $msg,
-    //         'code' => $code
-    //     ]);
-    // }
-
     //상품 수정 창
     public function goods_modify($idx)  
     {
@@ -420,12 +331,13 @@ class goodsController extends Controller
         ";
 
         $sql2 = "
-            select * from goods_img where idx=$idx;
+            select * from goods_img where goods_idx=$idx;
         ";
 
         $goodslist = DB::select($sql);
         $goodsimglist = DB::select($sql2);
 
+        // dd($goodsimglist);
         // dd($goodslist);
         return view('goods/goods_modify', ['goodslist' => $goodslist], ['goodsimglist' => $goodsimglist]);
     }
@@ -442,8 +354,9 @@ class goodsController extends Controller
         $price = $request->input('price');
 
         $comment = $request->input('comment');
-        $files = $request->input('image');
-        $filesPath = $request->input('imagePath');
+
+        $files = $request->file('image');
+        // $filesPath = $request->input('imagePath');
         
         try {
             DB::beginTransaction();
@@ -461,31 +374,48 @@ class goodsController extends Controller
                     'ut' => now()
             ]);
 
-            //기존 img가 널값인지 확인 후 기존 이미지 스토리지 삭제
-            $imgpaths = DB::table('goods_img')
-                -> where('idx', $idx)
-                -> get();
-            //사진 있으면
-            if($imgpaths != null) {
-                foreach ($imgpaths as $imgpath) {
-                    $pathdel = $imgpath->img_path;
-                    Storage::delete($pathdel);
-                }
-                DB::table('goods_img')
-                    -> where('idx', $idx)
-                    -> delete();
-            }
+            // //기존 img가 널값인지 확인 후 기존 이미지 스토리지 삭제
+            // //db select
+            // $imgpaths = DB::table('goods_img')
+            //             -> where('goods_idx', $idx)
+            //             -> get();
+            // //사진 있으면
+            // if($imgpaths != null) {
+            //     foreach ($imgpaths as $imgpath) {
+            //         $pathdel = $imgpath->img_path;
+            //         Storage::delete($pathdel);
+            //     }
+            //     DB::table('goods_img')
+            //         -> where('goods_idx', $idx)
+            //         -> delete();
+            // }
 
             if(!empty($files)) {
-                for($i=0; $i<count($files); $i++){
-                    $imageName = $files[$i];
-                    $path = $filesPath[$i];
-                    DB::table('goods_img')-> insert([
-                                'idx' => $idx,
+                //기존 img가 널값인지 확인 후 기존 이미지 스토리지 삭제
+                //db select
+                $imgpaths = DB::table('goods_img')
+                            -> where('goods_idx', $idx)
+                            -> get();
+                //사진 있으면
+                if($imgpaths != null) {
+                    foreach ($imgpaths as $imgpath) {
+                        $pathdel = $imgpath->img_path;
+                        Storage::delete($pathdel);
+                    }
+                    DB::table('goods_img')
+                        -> where('goods_idx', $idx)
+                        -> delete();
+                }
+
+                foreach($files as $file) {
+                    $imageName = date("YmdHis").'_'.$file->getClientOriginalName();
+                    $path = $file -> storeAs('public/images', $imageName);
+                    DB::table('goods_img')->insert([
+                                'goods_idx' => $idx,
                                 'img' => $imageName,
                                 'img_path' => $path,
                                 'rt' => now()
-                     ]);
+                    ]);
                 }
             }
 
@@ -506,7 +436,48 @@ class goodsController extends Controller
    }
 
 
+    public function photodelete ($idx){
+        try{
+            $goods_idx = DB::table('goods_img')->where('idx', $idx)->value('goods_idx');
+            // dd($goods_idx);
 
+            //기존 img가 널값인지 확인 후 기존 이미지 스토리지 삭제
+            $imgs = DB::table('goods_img')
+                    -> where('idx', $idx)
+                    -> get();
+            
+            //사진 있으면
+            if($imgs != null) {
+                foreach ($imgs as $img) {
+                    $pathdel = $img->img_path;
+                    Storage::delete($pathdel);
+                }
+                DB::table('goods_img')
+                    -> where('idx', $idx)
+                    -> delete();
+            }
+     
+            // $newgoods = DB::table('goods') -> where('idx', $idx) -> get();
+            // dd($newgoods);
+
+            $newimgs = DB::table('goods_img')->where('goods_idx', $goods_idx)->get();
+            DB::commit();
+
+    
+            $msg = '성공';
+            $code = 200;
+                
+        } catch (Exception $e) {
+            DB::rollback();
+            $msg = $e->getMessage();
+            $code = 500;   
+       } return response() -> json([
+            'msg' => $msg,
+            'code' => $code,
+            // 'newgoods' => $newgoods,
+            'newimgs' => $newimgs
+       ]);
+    }
 
    
    

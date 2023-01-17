@@ -31,7 +31,7 @@
             @foreach ($goodslist as $goods)
             <div class="mb-3">
                 <label for="rgstrNm" class="form-label" name="goods_nm">상품명</label>
-                <input class="form-control" id="rgstrNm" name="goods_nm" placeholder="{{$goods->goods_nm}}" >
+                <input class="form-control" id="rgstrNm" name="goods_nm" value="{{$goods->goods_nm}}" >
             </div>
             <div class="mb-3">
                 <label for="rgstrCategory" class="form-label" name="category">카테고리</label>
@@ -76,41 +76,72 @@
             </div>
             <div class="mb-3">
                 <label for="rgstrPrice" class="form-label" name="price">가격</label>
-                <input class="form-control" id="rgstrPrice" name="price" placeholder="{{$goods->price}}">
+                <input class="form-control" id="rgstrPrice" name="price" value="{{$goods->price}}">
+            </div>
+            <div class="mb-3">
+                <label for="formFile" class="form-label">이미지</label>
+                <input class="form-control" type="file" id="formFile" name="formimage" onchange="readMultipleImage(this);" multiple>
+                <div id="multiple-container" style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
+                </div>
             </div>
             
-            <script>
-                let imgArr = new Array();
-                let img = "";
-            </script>
-            @foreach ($goodsimglist as $goodsimg)
-                <script>
-                    img = "<?= $goodsimg->img ?>";
-                    imgArr.push(img);
-                </script>
-            @endforeach
+            
+            <div class="beforeimg" id="beforeimg">
+                    @foreach ($goodsimglist as $goodsimg)
+                    <div><img src="/storage/images/{{$goodsimg->img}}" alt="제품사진" style="width:20%;" class="beforeimg"></div>
+                    <label class="beforeimg" style="font-size:0.5rem;">{{$goodsimg->img_path}}<a href="javascript:photodelete({{$goodsimg->idx}});">[삭제]</a></label>
+                    @endforeach
+            </div>
+            
             
             <div class="mb-3">
-                <script>
-                    let comment = "<?= $goods->comment ?>";
-                </script>
-                <textarea id="summernote" name="editordata"></textarea>
+                <!-- <script>
+                    let beforecomment = "<?= $goods->comment ?>";
+                </script> -->
+                <label for="summernote-editor" class="summernote-editor py-2">상품상세</label>
+                <div>
+                <textarea id="summernote" name="editordata">{{$goods->comment}}</textarea>
+                </div>
             </div>
 
             @endforeach
             <div class="row" style="padding:10px; position: relative">
                 <div class="col-6 text-start">
-                    <button class="btn btn-sm btn-dark" onclick="self.close();">닫기</button>
+                    <!-- <button class="btn btn-sm btn-dark" onclick="self.close();">닫기</button> -->
+                    <button class="btn btn-sm btn-danger" onclick="isdelete();">삭제</button>
                 </div>
                 <div class="col-6 text-end">
                     <button class="btn btn-sm btn-primary" type="button" onclick="isSubmit();">수정</button>
+                    
                 </div>
             </div>
         </form>
     </div>
     <script>
-        let imgNameArr = new Array();
-        let imgPathArr = new Array();
+        //사진 개별 삭제
+        function photodelete(idx) {
+            $.ajax({
+            // headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+            // data: form_data,
+            type: "get",
+            url: `photodelete/${idx}`,
+            // cache: false,
+            // contentType: false,
+            // enctype: 'multipart/form-data',
+            // processData: false,
+            success: function(data) {
+                // $('#beforeimg').remove();
+                $('#beforeimg').load(location.href+' #beforeimg');
+
+            }, 
+            error: function(e){
+                console.log(e);
+            }
+        });
+        }
+
+        // let imgNameArr = new Array();
+        // let imgPathArr = new Array();
 
         //썸머노트
         $(document).ready(function() {
@@ -134,10 +165,10 @@
                 } 
             });
 
-            $('#summernote').summernote('editor.insertText', comment);
-            for (let i=0; i<imgArr.length; i++) {
-                $('#summernote').summernote('editor.insertImage', `/storage/images/${imgArr[i]}`);
-            }
+            // $('#summernote').summernote('editor.insertText', beforecomment);
+            // for (let i=0; i<imgArr.length; i++) {
+            //     $('#summernote').summernote('editor.insertImage', `/storage/images/${imgArr[i]}`);
+            // }
 
         });
 
@@ -155,8 +186,8 @@
             processData: false,
             success: function(data) {
                 $(el).summernote('insertImage', data.url);
-                imgNameArr.push(data.imgName);
-                imgPathArr.push(data.path);
+                // imgNameArr.push(data.imgName);
+                // imgPathArr.push(data.path);
             }, 
             error: function(e){
                 console.log(e);
@@ -189,6 +220,7 @@
         //썸네일
         function readMultipleImage(input) {
             $(".beforeimg").remove();
+            $(".column").remove();
             const multipleContainer = document.getElementById("multiple-container")
             
             // 인풋 태그에 파일들이 있는 경우
@@ -206,10 +238,13 @@
                 fileArr.forEach((file, index) => {
                     const reader = new FileReader()
                     const $imgDiv = document.createElement("div")   
+                    $imgDiv.style.height = "150px"
+                    $imgDiv.style.padding = "10px"  
                     const $img = document.createElement("img")
                     // $img.classList.add("image")
                     $img.style.display = "block"
                     $img.style.width = "100%"
+                    $img.style.height = "100%"
                     const $label = document.createElement("label")
                     // $label.classList.add("image-label")
                     $label.textContent = file.name
@@ -243,6 +278,31 @@
                 // })
                 // $("#beforeimg").empty();
                 
+            }
+        }
+
+        //삭제
+        function isdelete() {
+            if(confirm("상품을 삭제하시겠습니까?")){
+                $.ajax({
+                    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+                    url: "/deleting/{{$goods->idx}}",
+                    type: "POST",
+                    traditional : true,
+                    cache: false,
+                    success: function(data){
+                        if (data.code == 200) {
+                            alert('상품을 삭제하였습니다');
+                            window.opener.Search();
+                            self.close();
+                        } else if (data.code == 500) {
+                            alert('상품을 삭제하지 못했습니다');
+                            window.opener.Search();
+                            // self.close();
+                        }
+                    }
+                });
+            } else {
             }
         }
 
@@ -295,18 +355,28 @@
                 formData.append("weather", goodsweather);
                 formData.append("price", goodspri);
 
-                //img arr
-                imgNameArr.forEach(function(img){
-                    formData.append("image[]", img);
-                });
-                imgPathArr.forEach(function(img){
-                    formData.append("imagePath[]", img);
-                });
+                // //img arr
+                // imgNameArr.forEach(function(img){
+                //     formData.append("image[]", img);
+                // });
+                // imgPathArr.forEach(function(img){
+                //     formData.append("imagePath[]", img);
+                // });
+
+                //이미지 첨부했을 경우에만 (기존)
+                if($('input[name="formimage"]')[0].files.length > 0) {
+                    // let imgarr = [];
+                    $($('input[name="formimage"]')[0].files).each(function(index, file){
+                        formData.append("image[]", file);
+                    });
+                }
 
                 //plain text
-                let comment = $($('#summernote').summernote('code')).text();
+                let comment = $('#summernote').summernote('code');
                 formData.append("comment", comment);
 
+
+        
                 $.ajax({
                     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
                     url: "/modify/{{$goods->idx}}",
@@ -320,9 +390,8 @@
                     success: function(data){
                         if (data.code == 200) {
                             alert('상품을 수정하였습니다');
-                            window.opener.location.reload();
-                            // location.replace(`/read/`+data.idx);
-                            self.close();
+                            window.opener.Search();
+                            // self.close();
                         } else if (data.code == 500) {
                             alert('상품 수정에 실패했습니다');
                             // window.opener.location.reload();
