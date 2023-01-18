@@ -121,27 +121,16 @@
         //사진 개별 삭제
         function photodelete(idx) {
             $.ajax({
-            // headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-            // data: form_data,
             type: "get",
             url: `photodelete/${idx}`,
-            // cache: false,
-            // contentType: false,
-            // enctype: 'multipart/form-data',
-            // processData: false,
             success: function(data) {
-                // $('#beforeimg').remove();
                 $('#beforeimg').load(location.href+' #beforeimg');
-
             }, 
             error: function(e){
                 console.log(e);
             }
         });
         }
-
-        // let imgNameArr = new Array();
-        // let imgPathArr = new Array();
 
         //썸머노트
         $(document).ready(function() {
@@ -163,12 +152,7 @@
                         }
                     }
                 } 
-            });
-
-            // $('#summernote').summernote('editor.insertText', beforecomment);
-            // for (let i=0; i<imgArr.length; i++) {
-            //     $('#summernote').summernote('editor.insertImage', `/storage/images/${imgArr[i]}`);
-            // }
+            })
 
         });
 
@@ -186,8 +170,6 @@
             processData: false,
             success: function(data) {
                 $(el).summernote('insertImage', data.url);
-                // imgNameArr.push(data.imgName);
-                // imgPathArr.push(data.path);
             }, 
             error: function(e){
                 console.log(e);
@@ -219,14 +201,12 @@
 
         //썸네일
         function readMultipleImage(input) {
-            $(".beforeimg").remove();
+            // $(".beforeimg").remove();
             $(".column").remove();
             const multipleContainer = document.getElementById("multiple-container")
             
             // 인풋 태그에 파일들이 있는 경우
             if(input.files) {
-                // 이미지 파일 검사 (생략)
-                console.log(input.files)
                 // 유사배열을 배열로 변환 (forEach문으로 처리하기 위해)
                 const fileArr = Array.from(input.files)
                 const $colDiv1 = document.createElement("div")
@@ -271,13 +251,6 @@
                 })
                 multipleContainer.appendChild($colDiv1)
                 multipleContainer.appendChild($colDiv2)
-
-                // const inputMultipleImage = document.getElementById("formFile")
-                // inputMultipleImage.addEventListener("change", e => {
-                //     readMultipleImage(e.target)
-                // })
-                // $("#beforeimg").empty();
-                
             }
         }
 
@@ -355,14 +328,6 @@
                 formData.append("weather", goodsweather);
                 formData.append("price", goodspri);
 
-                // //img arr
-                // imgNameArr.forEach(function(img){
-                //     formData.append("image[]", img);
-                // });
-                // imgPathArr.forEach(function(img){
-                //     formData.append("imagePath[]", img);
-                // });
-
                 //이미지 첨부했을 경우에만 (기존)
                 if($('input[name="formimage"]')[0].files.length > 0) {
                     // let imgarr = [];
@@ -375,8 +340,6 @@
                 let comment = $('#summernote').summernote('code');
                 formData.append("comment", comment);
 
-
-        
                 $.ajax({
                     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
                     url: "/modify/{{$goods->idx}}",
@@ -391,10 +354,9 @@
                         if (data.code == 200) {
                             alert('상품을 수정하였습니다');
                             window.opener.Search();
-                            // self.close();
+                            self.close();
                         } else if (data.code == 500) {
                             alert('상품 수정에 실패했습니다');
-                            // window.opener.location.reload();
                             // self.close();
                         }
                     }

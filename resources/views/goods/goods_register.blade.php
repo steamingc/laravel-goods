@@ -108,9 +108,13 @@
                 <input class="form-control" type="file" id="formFile" name="formimage" onchange="readMultipleImage(this);" multiple>
                 <!-- <div id="multiple-container" style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
                 </div> -->
+                <div class="mb-3" id="multiple-container" style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
+                </div>
             </div>
-            <div class="mb-3" id="multiple-container" style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
+
+            <div class="beforeimg" id="beforeimg">      
             </div>
+
             <div class="mb-3">
                 <!-- <form method="post"> -->
                     <label for="summernote-editor" class="summernote-editor py-2">상품상세</label>
@@ -133,9 +137,6 @@
         </form>
     </div>
     <script>
-        // let imgNameArr = new Array();
-        // let imgPathArr = new Array();
-
         //썸머노트
         $(document).ready(function() {
             $('#summernote').summernote({
@@ -182,8 +183,6 @@
             processData: false,
             success: function(data) {
                 $(el).summernote('insertImage', data.url);
-                // imgNameArr.push(data.imgName);
-                // imgPathArr.push(data.path);
             }, 
             error: function(e){
                 console.log(e);
@@ -206,29 +205,17 @@
 
         //썸네일
         function readMultipleImage(input) {
-            //여기 수정 중
             $(".column").remove();
-            $(".beforeimg").remove();
+            // $(".beforeimg").remove();
             const multipleContainer = document.getElementById("multiple-container")
             
             // 인풋 태그에 파일들이 있는 경우
             if(input.files) {
                 // 이미지 파일 검사 (생략)
                 // console.log(input.files)
-
-                let fileArr = new Array();
-                // 유사배열을 배열로 변환 (forEach문으로 처리하기 위해)
-                if(!Array.isArray(input)) {
-                    fileArr = Array.from(input.files);
-                    console.log(fileArr);
-                } else {
-                    fileArr = input;
-                    console.log(fileArr);
-                }
                 
                 // 유사배열을 배열로 변환 (forEach문으로 처리하기 위해)
-                // const fileArr = Array.from(input.files)
-
+                const fileArr = Array.from(input.files)
                 const $colDiv1 = document.createElement("div")
                 const $colDiv2 = document.createElement("div")
                 $colDiv1.classList.add("column")
@@ -283,7 +270,6 @@
             var check_num = /^[0-9]+$/;
             let str = $('#rgstrPrice').val();
             str = str.replace(/,/g, "");
-            // value = Number(value.replaceAll(',', ''));
 
             /* 유효성 검사 */
             if($('#rgstrNm').val() == '') {
@@ -331,25 +317,31 @@
                 formData.append("weather", goodsweather);
                 formData.append("price", goodspri);
 
-                //이미지 첨부했을 경우에만 (기존)
+                //file 이미지 첨부했을 경우에만
                 if($('input[name="formimage"]')[0].files.length > 0) {
-                    // let imgarr = [];
                     $($('input[name="formimage"]')[0].files).each(function(index, file){
                         formData.append("image[]", file);
                     });
                 }
+                
+                //불러오기 이미지가 있다면
+                if($('#beforeimgdiv').length) {
+                    let src = document.getElementsByName('beforeimgsrc');
+                    let src_leng = src.length;
+                    for (i=0; i<src_leng; i++) {
+                        let imgsrc = $(`#beforeimgsrc${i}`).attr("src");
+                        let imgsrcsp = imgsrc.split("/");
+                        imgsrc_leng = imgsrcsp.length;
+                        imgnm = imgsrcsp[imgsrc_leng-1];
+                        formData.append("beforeimg[]", imgnm);
+                    }
 
-                // //img arr
-                // imgNameArr.forEach(function(img){
-                //     formData.append("image[]", img);
-                // });
-                // imgPathArr.forEach(function(img){
-                //     formData.append("imagePath[]", img);
-                // });
+                }
 
                 // //plain text
                 // let comment = $($('#summernote').summernote('code')).text();
-                // //with tag
+
+                //with tag
                 let comment = $('#summernote').summernote('code');
                 formData.append("comment", comment);
 
@@ -367,8 +359,7 @@
                         if (data.code == 200) {
                             alert('상품을 등록하였습니다');
                             window.opener.Search();
-
-                            // self.close();
+                            self.close();
                         } else if (data.code == 500) {
                             alert('상품등록에 실패했습니다');
                             // window.opener.location.reload();
@@ -377,6 +368,27 @@
                     }
                 });
             }
+        }
+
+        //불러오기 개별 삭제
+        function beforephotodelete (idx) {
+            $(`#beforeimgsrc${idx}`).remove();
+            $(`#beforeimgsrclabel${idx}`).remove();
+        }
+
+        function setSummernote(data) {
+            $('#summernote').summernote('reset');
+            // $('#summernote').summernote('pasteHTML', data);
+            $('#summernote').summernote('code', data);
+        }
+
+        function setImage(data1, data2) {
+            let beforeimg = document.getElementById('beforeimg');
+            let new_hTag = "";
+            for(var i=data1.length-1; i>=0; i--) {
+                new_hTag += "<div id='beforeimgdiv'><img src='/storage/images/"+data1[i]+"' alt='제품사진' style='width:20%;' class='beforeimg' id='beforeimgsrc"+i+"' name='beforeimgsrc'></div><label class='beforeimg' style='font-size:0.5rem;' id='beforeimgsrclabel"+i+"'>"+data2[i]+"<a href='javascript:beforephotodelete("+i+");'>[삭제]</a></label>";
+            }
+            beforeimg.innerHTML = new_hTag;
         }
     </script>
 </body>

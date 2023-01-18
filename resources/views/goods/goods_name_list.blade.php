@@ -64,7 +64,6 @@
                         $('#rgstrColor', opener.document).val(data.color).prop("selected", true);
                         $('#rgstrSize[value="'+data.size+'"]', opener.document).prop("checked", true);
                         if((data.weather).includes(',')) {
-                            // console.log(data.weather);
                             arr = (data.weather).split(", ");
                             arr.forEach(function(value, index){
                                 $('#rgstrWeather[value="'+value+'"]', opener.document).prop("checked", true);
@@ -74,43 +73,11 @@
                         }
                         $('#rgstrPrice', opener.document).val(data.price);
 
-                        console.log(data.imgArr);
-                        window.opener.readMultipleImage(data.imgArr);
-                        
-                        
-                        // console.log(data.comment);
-                        
-                        // var txt = opener.document.getElementById('summernote');
-                        // txt.value = data.comment;
-                        $('div.note-edting-area', opener.document).remove();
-                        $('div.note-edting-area', opener.document).after(data.comment);
-                        // $('textarea[name="editordata"]', opener.document).change();
-                        console.log(opener.summernote.value);
-                        
-                        // $('#summernote', opener.document).summernote('code', data.comment);
-                        // $('textarea[name="editordata"]', opener.document).summernote('reset');
-                        // $('textarea[name="editordata"]', opener.document).summernote('insertText', data.comment)
-                        // $('textarea[name="editordata"]').html($('#summernote').code());
-                        // $('#summernote', opener.document).summernote('reset');
-                        // $('#summernote', opener.document).summernote('editor.insertText', data.comment);
-
-                        // $('.note-editing-area', opener.document).summernote('insertText', data.comment);
-                        
-                        // $($editable.context.ownerDocument).summernote('editor.insertText', data.comment);
-
-
-                        //그림은 나중에 comment 먼저 해결
-                        // for (let i=0; i<(data.imgArr).length(); i++) {
-                        //     $('#summernote', opener.document).summernote('editor.insertImage', `/storage/images/${data.imgArr[i]}`);
-                        // }
-
-                        
-                        // $('#formFile', opener.document).val(data.img);
-                        // alert('상품 정보를 불러왔습니다');
-                        // self.close();
+                        opener.setSummernote(data.comment);
+                        opener.setImage(data.imgArr, data.imgPathArr);
                     } else if (data.code == 500) {
                         alert('상품 정보를 불러오지 못했습니다');
-                        // self.close();
+                        
                     }
                 }
             });

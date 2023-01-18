@@ -65,7 +65,7 @@ class goodsController extends Controller
 
                 //기존 img가 널값인지 확인 후 기존 이미지 스토리지 삭제
                 $imgpaths = DB::table('goods_img')
-                            -> where('idx', $idx)
+                            -> where('goods_idx', $idx)
                             -> get();
                 //사진 있으면
                 if($imgpaths != null) {
@@ -74,7 +74,7 @@ class goodsController extends Controller
                         Storage::delete($pathdel);
                     }
                     DB::table('goods_img')
-                        -> where('idx', $idx)
+                        -> where('goods_idx', $idx)
                         -> delete();
                 }
 
@@ -109,8 +109,9 @@ class goodsController extends Controller
        try {
             //기존 img가 널값인지 확인 후 기존 이미지 스토리지 삭제
             $imgpaths = DB::table('goods_img')
-                    -> where('idx', $idx)
+                    -> where('goods_idx', $idx)
                     -> get();
+            
             //사진 있으면
             if($imgpaths != null) {
                 foreach ($imgpaths as $imgpath) {
@@ -118,7 +119,7 @@ class goodsController extends Controller
                     Storage::delete($pathdel);
                 }
                 DB::table('goods_img')
-                    -> where('idx', $idx)
+                    -> where('goods_idx', $idx)
                     -> delete();
             }
 
@@ -244,6 +245,8 @@ class goodsController extends Controller
         $files = $request->file('image');
         // $filesPath = $request->input('imagePath');
         
+        $beforeimgs = $request->input('beforeimg');
+
         try {
             DB::beginTransaction();
             
@@ -260,6 +263,23 @@ class goodsController extends Controller
                     
                 $lastid = DB::getPdo() -> lastInsertId();
             
+                //불러오기 이미지 있을 경우
+                if(!empty($beforeimgs)) {
+                    foreach($beforeimgs as $beforeimg) {
+                        $imageName = date("YmdHis").'_'.$beforeimg;
+                        Storage::copy('public/images/'.$beforeimg, 'public/images/'.$imageName);
+                        
+                        $path = 'public/images/'.$imageName;
+                    
+                        DB::table('goods_img')->insert([
+                                    'goods_idx' => $lastid,
+                                    'img' => $imageName,
+                                    'img_path' => $path,
+                                    'rt' => now()
+                        ]);
+                    }
+                }
+
                 if(!empty($files)) {
                     foreach($files as $file) {
                         $imageName = date("YmdHis").'_'.$file->getClientOriginalName();
@@ -390,22 +410,23 @@ class goodsController extends Controller
             //         -> delete();
             // }
 
+            
             if(!empty($files)) {
-                //기존 img가 널값인지 확인 후 기존 이미지 스토리지 삭제
-                //db select
-                $imgpaths = DB::table('goods_img')
-                            -> where('goods_idx', $idx)
-                            -> get();
-                //사진 있으면
-                if($imgpaths != null) {
-                    foreach ($imgpaths as $imgpath) {
-                        $pathdel = $imgpath->img_path;
-                        Storage::delete($pathdel);
-                    }
-                    DB::table('goods_img')
-                        -> where('goods_idx', $idx)
-                        -> delete();
-                }
+                // //기존 img가 널값인지 확인 후 기존 이미지 스토리지 삭제
+                // $imgpaths = DB::table('goods_img')
+                //             -> where('goods_idx', $idx)
+                //             -> get();
+                // //사진 있으면
+                // if($imgpaths != null) {
+                //     foreach ($imgpaths as $imgpath) {
+                //         $pathdel = $imgpath->img_path;
+                //         dd($pathdel);
+                //         Storage::delete($pathdel);
+                //     }
+                //     DB::table('goods_img')
+                //         -> where('goods_idx', $idx)
+                //         -> delete();
+                // }
 
                 foreach($files as $file) {
                     $imageName = date("YmdHis").'_'.$file->getClientOriginalName();
@@ -435,11 +456,10 @@ class goodsController extends Controller
         ]);
    }
 
-
+    //사진 개별 삭제
     public function photodelete ($idx){
         try{
             $goods_idx = DB::table('goods_img')->where('idx', $idx)->value('goods_idx');
-            // dd($goods_idx);
 
             //기존 img가 널값인지 확인 후 기존 이미지 스토리지 삭제
             $imgs = DB::table('goods_img')
@@ -457,9 +477,6 @@ class goodsController extends Controller
                     -> delete();
             }
      
-            // $newgoods = DB::table('goods') -> where('idx', $idx) -> get();
-            // dd($newgoods);
-
             $newimgs = DB::table('goods_img')->where('goods_idx', $goods_idx)->get();
             DB::commit();
 
